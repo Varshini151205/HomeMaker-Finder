@@ -1,0 +1,129 @@
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(to right, #f9f9f9, #fdfdfd);
+  padding: 60px 20px;
+}
+
+/* Food Card Container - Bootstrap is used instead of custom grid */
+
+/* Food Card */
+.food-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 20px; /* Shortened the card height */
+  min-height: 80px; /* Ensures consistency */
+  max-width: 100%;
+}
+
+.food-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+/* Food Image */
+.food-card img {
+  width: 100%;
+  height: 140px; /* Shortened image height */
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+/* Description */
+.food-desc {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+/* Button Styling */
+.food-card .btn {
+  width: 100%;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.food-card .btn-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+}
+
+.food-card .btn-success {
+  background-color: #28a745;
+  color: white;
+  border: none;
+}
+
+/* Favorite Icon (used with Lucide React Heart icon) */
+.fav-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.2rem;
+  color: #ccc;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.fav-icon:hover,
+.fav-icon.active {
+  color: red;
+}
+
+/* Modal Styling */
+.modal-content {
+  border-radius: 12px;
+}
+
+/* Card Hover Scale */
+.card:hover {
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .food-card {
+    margin-bottom: 20px;
+  }
+}
+
+.food-listing {
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.card-body h5 {
+  margin-bottom: 6px;
+}
+
+.card-body p {
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+}
+
+.d-flex.gap-3.mt-3 {
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.food-card .btn {
+  width: 100%;
+}
+
+
