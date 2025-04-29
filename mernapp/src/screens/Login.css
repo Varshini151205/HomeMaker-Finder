@@ -1,0 +1,73 @@
+/* Full-screen background */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f8f9fa; /* Light background color */
+}
+
+/* Styling the login card */
+.login-card {
+  background: rgba(255, 255, 255, 0.9); /* Slight transparency */
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 350px;
+}
+
+/* Title and Subtitle */
+.login-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Input Fields */
+.input-group {
+  margin-bottom: 15px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+/* Login Button */
+.login-button {
+  width: 100%;
+  padding: 10px;
+  background: #ff6f61;
+  border: none;
+  color: white;
+  font-size: 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.login-button:hover {
+  background: #e63946;
+}
+
+/* Signup Link */
+.signup-btn {
+  color: blue;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.signup-btn:hover {
+  color: darkblue;
+}
+

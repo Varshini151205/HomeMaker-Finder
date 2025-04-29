@@ -1,0 +1,58 @@
+.dashboard-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.add-product-section,
+.products-section {
+  margin-bottom: 2rem;
+}
+
+.add-product-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.add-product-form input,
+.add-product-form select {
+  padding: 0.5rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.add-product-form button {
+  padding: 0.5rem 1rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.products-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.product-card {
+  border: 1px solid #ddd;
+  padding: 1rem;
+  width: 200px;
+}
+
+.product-card img {
+  width: 100%;
+  height: auto;
+}
+
+.message {
+  color: green;
+  margin-bottom: 1rem;
+}
