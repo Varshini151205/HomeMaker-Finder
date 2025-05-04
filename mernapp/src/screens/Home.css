@@ -127,3 +127,59 @@
 }
 
 
+
+/* Container for animated food icons */
+.food-icons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  z-index: -1;
+}
+
+.food-icon {
+  font-size: 40px;
+  position: absolute;
+  animation: float 10s infinite ease-in-out;
+  opacity: 0.8;
+}
+
+/* Floating animation */
+@keyframes float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.8;
+  }
+  25% {
+    transform: translateY(-30px) rotate(20deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.8;
+  }
+  75% {
+    transform: translateY(30px) rotate(-20deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.8;
+  }
+}
+
+/* Making each food icon move at different speeds */
+.food-icon:nth-child(odd) {
+  animation-duration: 12s;
+}
+
+.food-icon:nth-child(even) {
+  animation-duration: 8s;
+}
+

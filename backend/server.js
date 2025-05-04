@@ -111,6 +111,7 @@ app.post("/api/auth/reset-password/:token", async (req, res) => {
   }
 });
 
+
 // ✅ Fallback 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
+import { GiRoastChicken } from "react-icons/gi";
+
 import { CartContext } from "../context/CartContext";
 import "../styles/Navbar.css";
 
@@ -26,7 +28,17 @@ const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-success">
       <div className="container-fluid">
-        <Link className="navbar-brand fs-1 fst-italic" to="/">HomeMade Meals</Link>
+      <Link className="navbar-brand fs-1 fst-italic d-flex align-items-center gap-2" to="/">
+  <img
+    src="/logo.png" 
+    alt="Logo"
+    style={{ width: "40px", height: "40px", objectFit: "contain" }}
+  />
+  HomeMade Meals
+</Link>
+
+
+
 
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span className="navbar-toggler-icon"></span>

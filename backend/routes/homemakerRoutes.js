@@ -1,16 +1,16 @@
-const express = require('express');
+const express = require("express");
+const Homemaker = require("../models/Homemaker");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const validator = require("validator");
+const rateLimit = require("express-rate-limit");
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const rateLimit = require('express-rate-limit');
-const validator = require('validator');
-const Homemaker = require('../models/Homemaker');
 
 // Ensure public/images folder exists
-const uploadPath = path.join(__dirname, '../public/images');
+const uploadPath = path.join(__dirname, "../public/images");
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
 }
@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
-    const uniqueName = Date.now() + '-' + file.originalname;
+    const uniqueName = Date.now() + "-" + file.originalname;
     cb(null, uniqueName);
   },
 });
@@ -30,16 +30,16 @@ const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: function (req, file, cb) {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
     if (!allowedTypes.includes(file.mimetype)) {
-      return cb(new Error('Only JPEG, PNG, GIF images are allowed.'));
+      return cb(new Error("Only JPEG, PNG, GIF images are allowed."));
     }
     cb(null, true);
   },
 });
 
 // =================== SIGNUP ===================
-router.post('/signup', upload.single('profilePic'), async (req, res) => {
+router.post("/signup", upload.single("profilePic"), async (req, res) => {
   try {
     const {
       name,
@@ -54,8 +54,14 @@ router.post('/signup', upload.single('profilePic'), async (req, res) => {
     } = req.body;
 
     // Input validation
-    if (!name || !validator.isEmail(email) || !validator.isMobilePhone(phone) || !password || !address) {
-      return res.status(400).json({ message: 'Invalid input data.' });
+    if (
+      !name ||
+      !validator.isEmail(email) ||
+      !validator.isMobilePhone(phone) ||
+      !password ||
+      !address
+    ) {
+      return res.status(400).json({ message: "Invalid input data." });
     }
 
     const profilePic = req.file?.filename || null;
@@ -78,13 +84,14 @@ router.post('/signup', upload.single('profilePic'), async (req, res) => {
       cuisines: Array.isArray(cuisines) ? cuisines : [cuisines],
       customCuisine,
       experience,
-      dietaryPreferences: Array.isArray(dietaryPreferences) ? dietaryPreferences : [dietaryPreferences],
+      dietaryPreferences: Array.isArray(dietaryPreferences)
+        ? dietaryPreferences
+        : [dietaryPreferences],
       profilePic,
     });
-
+    console.log("Homemaker saved:", newHomemaker);
     await newHomemaker.save();
     res.status(201).json({ message: "Homemaker registered successfully" });
-
   } catch (err) {
     console.error("Signup Error:", err);
     res.status(500).json({ message: "Server error during signup", error: err.message });
@@ -95,16 +102,16 @@ router.post('/signup', upload.single('profilePic'), async (req, res) => {
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // 5 attempts max
-  message: 'Too many login attempts. Please try again later.',
+  message: "Too many login attempts. Please try again later.",
 });
 
-router.post('/homemaker-login', loginLimiter, async (req, res) => {
+router.post("/homemaker-login", loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
     // Input validation
     if (!validator.isEmail(email) || !password) {
-      return res.status(400).json({ message: 'Invalid credentials.' });
+      return res.status(400).json({ message: "Invalid credentials." });
     }
 
     const homemaker = await Homemaker.findOne({ email: email.toLowerCase() });
@@ -120,7 +127,7 @@ router.post('/homemaker-login', loginLimiter, async (req, res) => {
 
     // Generate JWT Token
     const token = jwt.sign({ id: homemaker._id }, process.env.JWT_SECRET, {
-      expiresIn: '1d', // 1 day
+      expiresIn: "1d", // 1 day
     });
 
     // ✅ Send token + homemaker info (with _id)
@@ -134,12 +141,36 @@ router.post('/homemaker-login', loginLimiter, async (req, res) => {
         address: homemaker.address,
         profilePic: homemaker.profilePic,
         // you can send other fields too if needed
-      }
+      },
     });
-
   } catch (err) {
     console.error("Login Error:", err);
     res.status(500).json({ message: "Server error during login", error: err.message });
+  }
+});
+
+// =================== VIEW HOMEMAKERS ===================
+router.get("/", async (req, res) => {
+  const { city, cuisine } = req.query;
+
+  try {
+    const query = {};
+    if (city) query.address = { $regex: city, $options: "i" }; // case-insensitive search for city
+    if (cuisine) query.cuisines = { $in: [cuisine] };
+
+    // Fetch homemakers based on query parameters
+    const homemakers = await Homemaker.find(query);
+
+    if (!homemakers.length) {
+      console.log("No homemakers found");
+      return res.status(404).json({ message: "No homemakers found matching your criteria." });
+    }
+
+    console.log("Homemakers found:", homemakers);
+    res.json(homemakers);
+  } catch (error) {
+    console.error("Error fetching homemakers:", error);
+    res.status(500).json({ message: "Error fetching homemakers", error: error.message });
   }
 });
 

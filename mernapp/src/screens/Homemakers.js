@@ -1,25 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 const Homemakers = () => {
   const [homemakers, setHomemakers] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/homemakers')
-      .then(res => setHomemakers(res.data))
-      .catch(err => console.log(err));
+    const fetchHomemakers = async () => {
+      try {
+        const response = await axios.get('/api/homemakers'); // Backend API
+        setHomemakers(response.data);
+      } catch (error) {
+        console.error('Error fetching homemakers', error);
+      }
+    };
+    fetchHomemakers();
   }, []);
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold">Available Homemakers</h2>
-      <div className="grid grid-cols-2 gap-4">
-        {homemakers.map(h => (
-          <Link to={`/homemaker/${h._id}`} key={h._id} className="border p-2 rounded shadow">
-            <h3 className="text-lg font-semibold">{h.name}</h3>
-            <p>Cuisine: {h.cuisine.join(', ')}</p>
-          </Link>
+    <div>
+      <h1>Our Homemakers</h1>
+      <div className="homemakers-grid">
+        {homemakers.map((homemaker) => (
+          <div key={homemaker._id} className="homemaker-card">
+            <img src={`/images/${homemaker.profilePic}`} alt={homemaker.name} />
+            <h3>{homemaker.name}</h3>
+            <p>📍 {homemaker.address}</p>
+            <p>⭐ {homemaker.rating || 'No rating yet'}</p>
+            <Link to={`/homemaker/${homemaker._id}`}>
+              <button>View Menu</button>
+            </Link>
+          </div>
         ))}
       </div>
     </div>
