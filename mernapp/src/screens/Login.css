@@ -1,73 +1,150 @@
-/* Full-screen background */
 .login-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: #f8f9fa; /* Light background color */
+  min-height: 100vh;
+  position: relative;
+  font-family: 'Roboto', sans-serif;
 }
 
-/* Styling the login card */
-.login-card {
-  background: rgba(255, 255, 255, 0.9); /* Slight transparency */
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  width: 350px;
-}
-
-/* Title and Subtitle */
-.login-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-}
-
-.login-subtitle {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 20px;
-}
-
-/* Input Fields */
-.input-group {
-  margin-bottom: 15px;
-}
-
-.form-control {
+.login-background {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  padding: 10px;
+  height: 100%;
+  /* Using a color gradient as fallback until you add an image */
+  background: linear-gradient(135deg, #ffa502, #ff6b6b);
+  background-size: cover;
+  background-position: center;
+  filter: blur(5px);
+  z-index: -2;
+}
+
+.login-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-tagline {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 300;
+  text-align: center;
+  margin-bottom: 40vh;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.login-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  z-index: 1;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
 }
 
-/* Login Button */
+input:focus {
+  border-color: #4a90e2;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
 .login-button {
   width: 100%;
-  padding: 10px;
-  background: #ff6f61;
-  border: none;
+  padding: 0.75rem;
+  background-color: #e67e22; /* Food-themed orange color */
   color: white;
-  font-size: 18px;
+  border: none;
   border-radius: 6px;
+  font-size: 1rem;
   cursor: pointer;
-  transition: 0.3s;
+  transition: background-color 0.2s;
 }
 
 .login-button:hover {
-  background: #e63946;
+  background-color: #d35400;
 }
 
-/* Signup Link */
-.signup-btn {
-  color: blue;
+.login-button.loading {
+  background-color: #f39c12;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background-color: #fff8f8;
+  color: #e74c3c;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1.2rem;
+  border-left: 4px solid #e74c3c;
+}
+
+.login-actions {
+  margin-top: 1.5rem;
+}
+
+.text-button {
+  background: none;
+  border: none;
+  color: #4a90e2;
   cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
   text-decoration: underline;
 }
 
-.signup-btn:hover {
-  color: darkblue;
+.text-button:hover {
+  color: #2c3e50;
 }
 
+.signup-section {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.signup-section p {
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
