@@ -44,7 +44,28 @@ const App = () => {
       <Router>
         <Navbar />
         <div className="container mt-4">
-          <h1 style={{ textAlign: "center", color: "blue" }}>Home Food App</h1>
+        <h1 
+      style={{ 
+        textAlign: "center", 
+        color: "#ff7700", 
+        fontFamily: "'Playfair Display', serif", 
+        fontWeight: "700",
+        fontSize: "2.5rem",
+        margin: "1.5rem 0",
+        textShadow: "1px 1px 3px rgba(0, 0, 0, 0.1)",
+        position: "relative",
+        padding: "0.5rem 0"
+      }}
+    >
+      <span
+        style={{
+          background: "linear-gradient(transparent 70%, rgba(255, 149, 0, 0.2) 70%)",
+          padding: "0 10px"
+        }}
+      >
+        Home Food App
+      </span>
+    </h1>
 
           <motion.div
             key={window.location.pathname} // Ensure each route has its own animation

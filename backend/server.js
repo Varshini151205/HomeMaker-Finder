@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const User = require('./models/User');  // Assuming you have a User model for your database
+const { OAuth2Client } = require('google-auth-library');  // Google OAuth library
 
 // Import routes
 const homemakerDashboardRoutes = require('./routes/homemakerDashboardRoutes'); 
@@ -17,37 +18,89 @@ const orderRoutes = require('./routes/orderRoutes');
 const productRoutes = require('./routes/productRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const viewHomemakersRoute = require('./routes/viewHomemakersRoute');
-
+const customerAuthRoutes = require('./routes/customerGoogleAuth');
 
 dotenv.config();
 
 const app = express();
+const listEndpoints = require('express-list-endpoints');
 
-// ✅ Middleware setup
+// Middleware setup
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());  // Adds security-related HTTP headers
 
-// ✅ Serve static profile pictures (e.g., for homemakers)
+// Serve static profile pictures (e.g., for homemakers)
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
-// ✅ Optional: Log incoming requests for debugging purposes
+// Optional: Log incoming requests for debugging purposes
 app.use((req, res, next) => {
   console.log(`${req.method} request made to: ${req.path}`);
   next();
 });
 
-// ✅ Import Routes and set up API prefixes
+// Import Routes and set up API prefixes
 app.use('/api/auth', homemakerRoutes);    // Homemaker signup/login
 app.use('/api/orders', orderRoutes);      // Orders-related routes
 app.use('/api/products', productRoutes);  // Product/menu routes
 app.use('/api/homemaker', homemakerDashboardRoutes); // Homemaker dashboard routes
 app.use('/api/customer-auth', customerRoutes); // Customer signup/login routes
 app.use('/api/view-homemakers', viewHomemakersRoute);
+app.use('/api/customer-auth/google', customerAuthRoutes);
 
+// Google Sign-In Route for Signup
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// ✅ Forgot password route
+app.post('/api/customer-auth/google-signup', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    // Verify the token
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    // Get user payload from the token
+    const payload = ticket.getPayload();
+
+    // Check if user already exists
+    let customer = await User.findOne({ email: payload.email });
+
+    if (customer) {
+      return res.status(400).json({ message: 'User already exists. Please login instead.' });
+    }
+
+    // Create a new customer from Google data
+    customer = new User({
+      name: payload.name,
+      email: payload.email,
+      password: Math.random().toString(36).slice(-8) + 'A1!',  // Random password
+      phone: '', // Phone is required in your model, you can handle it differently
+      googleId: payload.sub,
+      picture: payload.picture  // Optional: Store Google profile picture
+    });
+
+    // Save customer to the database
+    await customer.save();
+
+    // Return success response
+    res.status(201).json({
+      message: 'Google signup successful',
+      user: {
+        id: customer._id,
+        name: customer.name,
+        email: customer.email
+      }
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ message: 'Google authentication failed' });
+  }
+});
+
+// Forgot password route
 app.post("/api/auth/forgot-password", async (req, res) => {
   const { email } = req.body;
 
@@ -57,18 +110,16 @@ app.post("/api/auth/forgot-password", async (req, res) => {
       return res.status(400).json({ message: "No account found with that email." });
     }
 
-    // Generate a reset token
     const resetToken = crypto.randomBytes(20).toString("hex");
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiry time
     await user.save();
 
-    // Send reset link via email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER,  // Use your email here
-        pass: process.env.EMAIL_PASS,  // Use your email password here
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
@@ -92,16 +143,15 @@ app.post("/api/auth/reset-password/:token", async (req, res) => {
   const { password } = req.body;
 
   try {
-    const user = await User.findOne({ 
-      resetPasswordToken: token, 
-      resetPasswordExpires: { $gt: Date.now() } 
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
     });
 
     if (!user) {
       return res.status(400).json({ message: "Invalid or expired token." });
     }
 
-    // Hash the new password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
     user.resetPasswordToken = undefined;
@@ -115,13 +165,12 @@ app.post("/api/auth/reset-password/:token", async (req, res) => {
   }
 });
 
-
-// ✅ Fallback 404 handler
+// Fallback 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// ✅ Connect to MongoDB & Start Server
+// Connect to MongoDB & Start Server
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
@@ -129,13 +178,11 @@ const connectDB = async () => {
       useUnifiedTopology: true,
     });
     console.log('✅ MongoDB connected');
-    
-    // Start server after successful DB connection
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   } catch (err) {
     console.error('❌ MongoDB connection error:', err);
-    process.exit(1);  // Exit the process in case of a failed MongoDB connection
+    process.exit(1);
   }
 };
 

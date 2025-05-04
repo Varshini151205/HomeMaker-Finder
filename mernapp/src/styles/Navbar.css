@@ -1,47 +1,245 @@
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000; /* Makes sure the navbar is above other content */
-  background-color: #28a745; /* Change this as per your theme */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+/* Navbar.css - Updated Food-themed styling */
+
+/* Main Navbar Styling */
+.custom-navbar {
+  background: linear-gradient(to right, #ff7700, #ff9500);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 0.8rem 1rem;
 }
 
-.container-fluid {
-  padding-left: 20px;
-  padding-right: 20px;
+/* Brand Logo and Text */
+.navbar-logo {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
 }
 
-.navbar-nav-right {
+.brand-text {
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-style: italic;
+  color: #fff;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Navigation Buttons */
+.nav-buttons {
+  gap: 10px;
+}
+
+.nav-btn {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-}
-
-.navbar-nav {
-  margin-left: 20px;
-}
-
-.nav-link {
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
   color: white;
-  margin-right: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-.navbar-toggler-icon {
+.nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+}
+
+/* Cart Styling */
+.cart-container {
+  margin: 0 12px;
+}
+
+.cart-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #fff;
+  border: none;
+  border-radius: 25px;
+  color: #ff7700;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.cart-btn:hover {
+  background-color: #ffe8d6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #e74c3c;
   color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
 }
 
-.navbar-collapse {
+.cart-modal {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 320px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  z-index: 1000;
+  margin-top: 10px;
+}
+
+.cart-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
 }
 
-.cart-container, .profile-container {
-  margin-left: 20px;
+.cart-item-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 12px;
 }
 
-/* To add spacing below the fixed navbar */
-body {
-  padding-top: 70px; /* Adjust based on the height of your navbar */
+.cart-item-controls {
+  display: flex;
+  align-items: center;
+}
+
+.btn-quantity {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 2px;
+  cursor: pointer;
+}
+
+.btn-remove {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background-color: #ffeeee;
+  color: #ff5555;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.view-cart-btn {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin-top: 12px;
+  text-align: center;
+  background-color: #ff7700;
+  color: white;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.view-cart-btn:hover {
+  background-color: #ff6600;
+  color: white;
+}
+
+/* Profile Styling */
+.profile-container {
+  margin-left: 10px;
+}
+
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 25px;
+  color: white;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.profile-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 180px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  margin-top: 10px;
+  z-index: 1000;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 10px 16px;
+  text-decoration: none;
+  color: #333;
+  transition: background-color 0.2s;
+  border: none;
+  width: 100%;
+  text-align: left;
+  background: none;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.logout-btn {
+  color: #e74c3c;
+}
+
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: white;
+  border-radius: 25px;
+  color: #ff7700;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-left: 10px;
+}
+
+.login-btn:hover {
+  background-color: #ffe8d6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }

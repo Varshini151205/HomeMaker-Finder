@@ -220,3 +220,46 @@ label {
   font-size: 1.1rem;
   margin-bottom: 1rem;
 }
+
+/* Add these styles to your existing Signup.css file */
+
+.or-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #ddd;
+}
+
+.or-divider span {
+  padding: 0 10px;
+  color: #777;
+  font-size: 14px;
+}
+
+.social-signup {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+/* If you want to customize the Google button further, add these styles */
+#google-signin-button {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+/* Make sure the Google button is visible */
+#google-signin-button div {
+  display: flex !important;
+  justify-content: center;
+  width: 100% !important;
+}

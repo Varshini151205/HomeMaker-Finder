@@ -20,7 +20,7 @@ const Menu = () => {
   // Get homemaker ID from localStorage (set during homemaker login)
   const homemaker = JSON.parse(localStorage.getItem("homemaker"));
   const homemakerId = homemaker?._id;
-
+  console.log("homemaker"+homemaker);
   // Get customer details from localStorage (set during customer login)
   const customer = JSON.parse(localStorage.getItem("customer"));
   const customerId = customer?._id;
@@ -37,7 +37,7 @@ const Menu = () => {
       try {
         const res = await fetch(`http://localhost:5000/api/products/homemaker/${homemakerId}`);
         const data = await res.json();
-        
+        console.log("the data is"+data);  
         // Add mock ratings and preparation time for UI enhancement
         if (Array.isArray(data)) {
           const enhancedData = data.map(item => ({

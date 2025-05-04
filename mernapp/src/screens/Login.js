@@ -38,6 +38,7 @@ const Login = ({ type, apiUrl, redirect }) => {
         // Store user-specific data
         if (type === "Homemaker" && response.data.homemaker?._id) {
           localStorage.setItem("homemakerId", response.data.homemaker._id);
+          console.log("homemakers added"+response.data.homemaker._id);
         } else if (type === "Customer" && response.data.customer?._id) {
           localStorage.setItem("customerId", response.data.customer._id);
         }

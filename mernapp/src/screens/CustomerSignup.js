@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Signup.css";
@@ -7,6 +7,75 @@ const CustomerSignup = () => {
   const [user, setUser] = useState({ name: "", email: "", password: "", phone: "" });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Load the Google Sign-In API script
+    const loadGoogleScript = () => {
+      // Load the Google API script
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+      
+      // Initialize Google Sign-In when script loads
+      script.onload = () => {
+        if (window.google) {
+          initGoogleSignIn();
+        }
+      };
+    };
+    
+    loadGoogleScript();
+    
+    return () => {
+      // Cleanup - remove any Google Sign-In related elements
+      const googleScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      if (googleScript) {
+        googleScript.remove();
+      }
+    };
+  }, []);
+  
+  const initGoogleSignIn = () => {
+    window.google.accounts.id.initialize({
+      client_id: "637222310524-53gmf5vs1ri0msave46ilebd75j17ept.apps.googleusercontent.com", // Replace with your actual Google Client ID
+      callback: handleGoogleSignIn,
+      auto_select: false
+    });
+    
+    window.google.accounts.id.renderButton(
+      document.getElementById("google-signin-button"),
+      { 
+        theme: "outline", 
+        size: "large",
+        text: "signup_with",
+        width: 250
+      }
+    );
+  };
+  
+  const handleGoogleSignIn = async (response) => {
+    try {
+      // Google Sign-In was successful, get user info from the response
+      const { credential } = response;
+      
+      // Send the token to your backend
+      const result = await axios.post("http://localhost:5000/api/customer-auth/google-signup", {
+        token: credential
+      });
+      
+      if (result.data) {
+        alert("Google Sign-Up Successful!");
+        navigate("/customer-login");
+      }
+    } catch (error) {
+      setErrors((prev) => ({ 
+        ...prev, 
+        general: error.response?.data?.message || "Google signup failed. Please try again." 
+      }));
+    }
+  };
 
   const validatePassword = (password) => {
     return /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
@@ -105,6 +174,14 @@ const CustomerSignup = () => {
 
           <button type="submit" className="signup-button">Sign Up</button>
         </form>
+        
+        <div className="or-divider">
+          <span>OR</span>
+        </div>
+        
+        <div className="social-signup">
+          <div id="google-signin-button"></div>
+        </div>
 
         <p>
           Already have an account?  

@@ -31,7 +31,7 @@ router.post("/", upload.single("img"), async (req, res) => {
       price,
       category,
       homemakerId,
-      img: imgPath,
+      imgPath,
     });
 
     await newProduct.save();
@@ -39,6 +39,17 @@ router.post("/", upload.single("img"), async (req, res) => {
   } catch (error) {
     console.error("Error in adding product:", error);
     res.status(500).json({ message: "Server error" });
+  }
+
+});
+// GET /api/products/homemaker/:id
+router.get("/homemaker/:id", async (req, res) => {
+  try {
+    const homemakerId = req.params.id;
+    const products = await Product.find({ homemakerId });
+    res.json({ products });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch products" });
   }
 });
 
