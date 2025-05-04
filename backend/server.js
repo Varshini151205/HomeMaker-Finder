@@ -16,6 +16,8 @@ const homemakerRoutes = require('./routes/homemakerRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const productRoutes = require('./routes/productRoutes');
 const customerRoutes = require('./routes/customerRoutes');
+const viewHomemakersRoute = require('./routes/viewHomemakersRoute');
+
 
 dotenv.config();
 
@@ -42,6 +44,8 @@ app.use('/api/orders', orderRoutes);      // Orders-related routes
 app.use('/api/products', productRoutes);  // Product/menu routes
 app.use('/api/homemaker', homemakerDashboardRoutes); // Homemaker dashboard routes
 app.use('/api/customer-auth', customerRoutes); // Customer signup/login routes
+app.use('/api/view-homemakers', viewHomemakersRoute);
+
 
 // ✅ Forgot password route
 app.post("/api/auth/forgot-password", async (req, res) => {

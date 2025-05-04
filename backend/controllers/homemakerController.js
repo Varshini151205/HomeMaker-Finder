@@ -1,37 +1,94 @@
-const Homemaker = require('../models/Homemaker');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const Product = require("../models/Product");
+const Homemaker = require("../models/Homemaker");
 
-exports.signup = async (req, res) => {
-  const { name, email, password, location, phone } = req.body;
-
+// Fetch all products added by this homemaker
+exports.getProductsByHomemaker = async (req, res) => {
   try {
-    const existing = await Homemaker.findOne({ email });
-    if (existing) return res.status(400).json({ message: "Email already registered" });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const homemaker = await Homemaker.create({ name, email, password: hashedPassword, location, phone });
-
-    res.status(201).json({ message: "Signup successful", homemaker });
+    const products = await Product.find({ homemaker: req.user.id });
+    res.status(200).json(products);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error fetching products:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
+// Add a new product
+exports.addProduct = async (req, res) => {
+  const { name, description, price, category, image } = req.body;
 
   try {
-    const homemaker = await Homemaker.findOne({ email });
-    if (!homemaker) return res.status(404).json({ message: "User not found" });
+    const product = new Product({
+      homemaker: req.user.id,
+      name,
+      description,
+      price,
+      category,
+      image,
+    });
 
-    const isMatch = await bcrypt.compare(password, homemaker.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
-
-    const token = jwt.sign({ id: homemaker._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    res.json({ message: "Login successful", token, homemaker });
+    await product.save();
+    res.status(201).json(product);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error adding product:", err);
+    res.status(500).json({ message: "Could not add product" });
+  }
+};
+
+// Update a product
+exports.updateProduct = async (req, res) => {
+  const { id } = req.params;
+  const { name, description, price, category, image } = req.body;
+
+  try {
+    const updated = await Product.findOneAndUpdate(
+      { _id: id, homemaker: req.user.id },
+      { name, description, price, category, image },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error("Error updating product:", err);
+    res.status(500).json({ message: "Could not update product" });
+  }
+};
+
+// Delete a product
+exports.deleteProduct = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deleted = await Product.findOneAndDelete({
+      _id: id,
+      homemaker: req.user.id,
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    res.status(500).json({ message: "Could not delete product" });
+  }
+};
+
+// Get Homemaker Profile
+exports.getHomemakerProfile = async (req, res) => {
+  try {
+    const homemaker = await Homemaker.findById(req.user.id).select("-password");
+    if (!homemaker) {
+      return res.status(404).json({ message: "Homemaker not found" });
+    }
+
+    res.status(200).json(homemaker);
+  } catch (err) {
+    console.error("Error fetching homemaker profile:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };

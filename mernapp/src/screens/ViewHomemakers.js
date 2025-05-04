@@ -11,7 +11,7 @@ const ViewHomemakers = () => {
     // Function to fetch homemakers
     const fetchHomemakers = async () => {
       try {
-        const response = await axios.get("/api/view-homemakers");
+        const response = await axios.get("http://localhost:5000/api/view-homemakers");
         setHomemakers(response.data);
       } catch (err) {
         console.error("Error fetching homemakers:", err);
