@@ -4,45 +4,45 @@ import "./AddProduct.css"; // optional, for custom styling
 const AddProduct = () => {
   const [formData, setFormData] = useState({
     name: "",
-    img: "",
+    img: null,  // Changed from string to null, as it's an image file
     price: "",
     category: "",
   });
   const [message, setMessage] = useState("");
 
   // replace with actual homemaker ID or fetch from context/state
-  const homemakerId = "67f12e4bfb99ad1c6b38eb2c";
+  const homemakerId = "680de8473ef4cbcba654fc52";
 
   const handleChange = (e) => {
+    const { name, value, files } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: files ? files[0] : value, // For image file, store the file object
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newProduct = {
-      ...formData,
-      price: Number(formData.price),
-      homemakerId,
-    };
+    // Prepare form data for image upload
+    const form = new FormData();
+    form.append("name", formData.name);
+    form.append("img", formData.img);  // Append the file object
+    form.append("price", Number(formData.price));
+    form.append("category", formData.category);
+    form.append("homemakerId", homemakerId);
 
     try {
       const res = await fetch("http://localhost:5000/api/products", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newProduct),
+        body: form,  // Use FormData directly as body
       });
 
       const data = await res.json();
 
       if (res.ok) {
         setMessage("Product added successfully!");
-        setFormData({ name: "", img: "", price: "", category: "" });
+        setFormData({ name: "", img: null, price: "", category: "" });
       } else {
         setMessage(data.error || "Something went wrong.");
       }
@@ -66,11 +66,11 @@ const AddProduct = () => {
           required
         />
 
+        {/* File input for image */}
         <input
-          type="text"
+          type="file"
           name="img"
-          placeholder="Image URL"
-          value={formData.img}
+          accept="image/*"
           onChange={handleChange}
           required
         />

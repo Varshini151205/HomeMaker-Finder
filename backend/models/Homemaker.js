@@ -1,23 +1,10 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const homemakerSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true, // ✅ This is necessary
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  phone: {
-    type: String,
-    required: true,
-  },
+  name: String,
+  email: String,
+  password: String,
+  phone: String,
   address: String,
   cuisines: [String],
   customCuisine: String,
@@ -26,4 +13,4 @@ const homemakerSchema = new mongoose.Schema({
   profilePic: String,
 });
 
-module.exports = mongoose.model('Homemaker', homemakerSchema);
+module.exports = mongoose.model("Homemaker", homemakerSchema);

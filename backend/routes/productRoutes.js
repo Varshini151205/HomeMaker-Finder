@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const Product = require('../models/Product'); // Adjust based on where your Product model is located
 
+// Create uploads directory if it doesn't exist
 const uploadDir = './uploads';
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
@@ -37,10 +38,11 @@ const upload = multer({
 // POST route to handle food data submission
 router.post("/", upload.single('img'), async (req, res) => {
   try {
-    // Log received data (for debugging)
+    // Log received data for debugging
     console.log("Received food data:", req.body);
     console.log("Received file data:", req.file);
 
+    // Extract data from the body and file
     const { name, price, category, homemakerId } = req.body;
     const img = req.file ? req.file.path : null; // Handle the image file path
 
@@ -60,7 +62,7 @@ router.post("/", upload.single('img'), async (req, res) => {
       return res.status(400).json({ error: "Invalid price. Price must be a positive number." });
     }
 
-    // Create new product and save it to the database
+    // Create a new product and save it to the database
     const newProduct = new Product({
       name,
       img,
@@ -69,12 +71,18 @@ router.post("/", upload.single('img'), async (req, res) => {
       homemakerId,
     });
 
-    await newProduct.save();
+    const savedProduct = await newProduct.save(); // Save the product to DB
+
+    console.log("Product saved:", savedProduct);  // Log saved product for verification
 
     // Send a successful response
-    res.status(201).json({ message: "Product added successfully!", product: newProduct });
+    res.status(201).json({
+      message: "Product added successfully!",
+      product: savedProduct,
+    });
   } catch (err) {
     console.error("Error adding product:", err);
+
     // Handle file upload or general errors
     if (err instanceof multer.MulterError) {
       return res.status(400).json({ error: err.message });

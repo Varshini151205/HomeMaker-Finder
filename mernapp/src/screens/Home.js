@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import Footer from "../components/Footer";
 import { CartContext } from "../context/CartContext";
@@ -68,7 +68,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="home-container">
+    <div className="home-fullscreen">
       {/* Hero Section */}
       <section className="hero-section text-center py-5 bg-light">
         <div className="container-fluid px-4">
@@ -85,13 +85,14 @@ export default function Home() {
             >
               Explore Menu
             </button>
-            <button
-              className="btn btn-success px-4 fw-semibold shadow-sm"
-              style={{ fontSize: "1.1rem", borderRadius: "30px" }}
-              onClick={() => navigate("/homemakers")}
-            >
-              View Homemakers
-            </button>
+            <Link to="/view-homemakers">
+              <button
+                className="btn btn-success px-4 fw-semibold shadow-sm"
+                style={{ fontSize: "1.1rem", borderRadius: "30px" }}
+              >
+                View Homemakers
+              </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -117,7 +118,6 @@ export default function Home() {
                     <p className="card-text text-muted">{food.desc}</p>
 
                     <div className="d-flex flex-column align-items-center gap-2 mt-3">
-                      {/* Favorite */}
                       <button className="btn btn-outline-light border" onClick={() => toggleFavorite(food)}>
                         <Heart
                           size={20}
@@ -126,7 +126,6 @@ export default function Home() {
                         />
                       </button>
 
-                      {/* Add to Cart */}
                       <button
                         className="btn btn-sm btn-primary w-100"
                         onClick={() => {
@@ -139,7 +138,6 @@ export default function Home() {
                         {addedIndex === index ? "✅ Added!" : "🛒 Add to Cart"}
                       </button>
 
-                      {/* Order Now */}
                       <button className="btn btn-sm btn-success w-100" onClick={() => handleOrderNow(food)}>
                         Order Now
                       </button>
@@ -182,3 +180,4 @@ export default function Home() {
     </div>
   );
 }
+
