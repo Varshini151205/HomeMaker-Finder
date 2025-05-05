@@ -46,3 +46,90 @@
     margin-top: 20px;
   }
   
+  /* Add this to your existing ViewHomemakers.css file */
+.homemaker-card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.stars-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 8px 0;
+}
+
+.rating-text {
+  margin-left: 5px;
+  font-size: 14px;
+  color: #7E808C;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* HomemakerMenu.css */
+
+/* Basic styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Card hover effects */
+.homemaker-card-hover:hover,
+.product-card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
+
+/* Rating stars styling */
+.stars-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rating-text {
+  margin-left: 6px;
+  color: #7E808C;
+  font-size: 14px;
+}
+
+/* Add some responsive adjustments */
+@media (max-width: 768px) {
+  .homemaker-container {
+    padding: 16px;
+  }
+  
+  .homemaker-header {
+    flex-direction: column;
+  }
+}
+
+/* Button hover effects */
+button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* Filter and search field focus styles */
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #FF5A00;
+  box-shadow: 0 0 0 2px rgba(255, 90, 0, 0.2);
+}

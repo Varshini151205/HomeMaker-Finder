@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, Edit, Trash2, XCircle } from "lucide-react";
 
 export default function HomemakerDashboard() {
   const [formData, setFormData] = useState({
@@ -12,6 +12,9 @@ export default function HomemakerDashboard() {
   const [foods, setFoods] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: "", type: "" });
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentItemId, setCurrentItemId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const homemakerId = localStorage.getItem("homemakerId") || "";
 
   // Food-themed colors
@@ -21,6 +24,7 @@ export default function HomemakerDashboard() {
     accent: "#4CAF50", // Fresh green
     light: "#FFF3E0", // Cream
     dark: "#5D4037", // Dark brown
+    danger: "#F44336", // Red for delete actions
   };
 
   useEffect(() => {
@@ -64,6 +68,74 @@ export default function HomemakerDashboard() {
     }, 5000);
   };
 
+  // Reset form to default state
+  const resetForm = () => {
+    setFormData({ name: "", price: "", category: "", imgFile: null });
+    setIsEditing(false);
+    setCurrentItemId(null);
+    // Reset file input
+    const fileInput = document.getElementById("product-image");
+    if (fileInput) fileInput.value = "";
+  };
+
+  // Set up form for editing a product
+  const handleEditClick = (item) => {
+    setFormData({
+      name: item.name,
+      price: item.price,
+      category: item.category,
+      imgFile: null, // Can't pre-fill the file input
+    });
+    setIsEditing(true);
+    setCurrentItemId(item._id);
+    
+    // Scroll to form
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
+  // Cancel editing and reset form
+  const handleCancelEdit = () => {
+    resetForm();
+  };
+
+  // Initialize delete confirmation for an item
+  const handleDeleteClick = (itemId) => {
+    setShowDeleteConfirm(itemId);
+  };
+
+  // Cancel delete confirmation
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(null);
+  };
+
+  // Actually delete the item
+  const handleConfirmDelete = async (itemId) => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem("token");
+      await axios.delete(`/api/products/${itemId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      // Remove the item from the local state
+      setFoods(foods.filter(item => item._id !== itemId));
+      setShowDeleteConfirm(null);
+      showNotification("Item deleted successfully!", "success");
+      setIsLoading(false);
+    } catch (err) {
+      setIsLoading(false);
+      console.error("Error deleting item:", err);
+      const errorMessage = err.response?.data?.message || 
+                          "Failed to delete item. Please try again.";
+      showNotification(errorMessage, "error");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -74,8 +146,14 @@ export default function HomemakerDashboard() {
 
     const { name, price, category, imgFile } = formData;
     
-    if (!name || !price || !category || !imgFile) {
+    if (!name || !price || !category) {
       showNotification("Please fill all required fields.", "error");
+      return;
+    }
+
+    // We need image file for new products but it's optional for updates
+    if (!isEditing && !imgFile) {
+      showNotification("Please select an image for your product.", "error");
       return;
     }
 
@@ -84,39 +162,53 @@ export default function HomemakerDashboard() {
     formDataToSend.append("price", price);
     formDataToSend.append("category", category);
     formDataToSend.append("homemakerId", homemakerId);
-    formDataToSend.append("img", imgFile);
+    
+    // Only append file if it exists (required for new items, optional for updates)
+    if (imgFile) {
+      formDataToSend.append("img", imgFile);
+    }
 
     try {
       setIsLoading(true);
       const token = localStorage.getItem("token");
-      const response = await axios.post("/api/products", formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      
+      let response;
+      if (isEditing) {
+        // Update existing product
+        response = await axios.put(`/api/products/${currentItemId}`, formDataToSend, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        showNotification("Item updated successfully!", "success");
+      } else {
+        // Create new product
+        response = await axios.post("/api/products", formDataToSend, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        showNotification("Item added successfully!", "success");
+      }
 
       console.log("Response from server:", response.data);
-      showNotification("Item added successfully!", "success");
-
-      // Reset form fields after successful submission
-      setFormData({ name: "", price: "", category: "", imgFile: null });
       
-      // Reset file input
-      const fileInput = document.getElementById("product-image");
-      if (fileInput) fileInput.value = "";
-
-      // Fetch updated list of products after adding
+      // Reset form fields after successful submission
+      resetForm();
+      
+      // Fetch updated list of products
       const { data } = await axios.get(`/api/products/homemaker/${homemakerId}`);
       setFoods(data.products || []);
       setIsLoading(false);
     } catch (err) {
       setIsLoading(false);
-      console.error("Error adding item:", err);
+      console.error("Error with product:", err);
       
       // More detailed error messaging
       const errorMessage = err.response?.data?.message || 
-                          "Failed to add item. Please check your connection and try again.";
+                          `Failed to ${isEditing ? 'update' : 'add'} item. Please check your connection and try again.`;
       showNotification(errorMessage, "error");
     }
   };
@@ -162,15 +254,17 @@ export default function HomemakerDashboard() {
           </div>
         )}
 
-        {/* Form to Add New Product */}
+        {/* Form to Add/Edit Product */}
         <div className="card p-4 mb-5 shadow" 
              style={{ 
                borderRadius: "15px", 
-               borderLeft: `5px solid ${colors.primary}`,
+               borderLeft: `5px solid ${isEditing ? colors.accent : colors.primary}`,
                backgroundColor: "#fff",
                transition: "transform 0.3s",
              }}>
-          <h3 style={{ color: colors.primary }}>Add New Product</h3>
+          <h3 style={{ color: isEditing ? colors.accent : colors.primary }}>
+            {isEditing ? "Edit Product" : "Add New Product"}
+          </h3>
           <form onSubmit={handleSubmit} encType="multipart/form-data">
             <div className="mb-3">
               <label htmlFor="product-name" className="form-label" style={{ color: colors.dark }}>Product Name</label>
@@ -223,34 +317,57 @@ export default function HomemakerDashboard() {
             </div>
             
             <div className="mb-3">
-              <label htmlFor="product-image" className="form-label" style={{ color: colors.dark }}>Product Image</label>
+              <label htmlFor="product-image" className="form-label" style={{ color: colors.dark }}>
+                Product Image {isEditing && "(Leave empty to keep current image)"}
+              </label>
               <input
                 id="product-image"
                 type="file"
                 accept="image/*"
                 className="form-control"
                 onChange={handleFileChange}
-                required
+                required={!isEditing}
                 style={{ borderColor: colors.secondary }}
               />
             </div>
             
-            <button 
-              className="btn btn-lg mt-2" 
-              type="submit"
-              disabled={isLoading}
-              style={{ 
-                backgroundColor: colors.primary, 
-                color: "white",
-                borderRadius: "8px",
-                padding: "12px 24px",
-                fontWeight: "600",
-                transition: "all 0.3s",
-                boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
-              }}
-            >
-              {isLoading ? "Adding..." : "Add Item"}
-            </button>
+            <div className="d-flex gap-2">
+              <button 
+                className="btn btn-lg mt-2" 
+                type="submit"
+                disabled={isLoading}
+                style={{ 
+                  backgroundColor: isEditing ? colors.accent : colors.primary, 
+                  color: "white",
+                  borderRadius: "8px",
+                  padding: "12px 24px",
+                  fontWeight: "600",
+                  transition: "all 0.3s",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+                }}
+              >
+                {isLoading ? (isEditing ? "Updating..." : "Adding...") : (isEditing ? "Update Item" : "Add Item")}
+              </button>
+              
+              {isEditing && (
+                <button 
+                  className="btn btn-lg mt-2" 
+                  type="button"
+                  onClick={handleCancelEdit}
+                  style={{ 
+                    backgroundColor: "#6c757d", 
+                    color: "white",
+                    borderRadius: "8px",
+                    padding: "12px 24px",
+                    fontWeight: "600",
+                    transition: "all 0.3s",
+                    boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         </div>
 
@@ -262,7 +379,7 @@ export default function HomemakerDashboard() {
 
         {/* Listing the Products (Food Items) */}
         <div className="row">
-          {isLoading ? (
+          {isLoading && !foods.length ? (
             <div className="col-12 text-center py-5">
               <div className="spinner-border" role="status" style={{ color: colors.primary }}>
                 <span className="visually-hidden">Loading...</span>
@@ -277,10 +394,7 @@ export default function HomemakerDashboard() {
                     borderRadius: "12px", 
                     overflow: "hidden",
                     transition: "transform 0.3s",
-                    cursor: "pointer"
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-10px)"}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
                 >
                   <div style={{ height: "200px", overflow: "hidden" }}>
                     <img
@@ -309,6 +423,78 @@ export default function HomemakerDashboard() {
                       {item.category}
                     </div>
                     <p className="fw-bold" style={{ color: colors.primary, fontSize: "1.2rem" }}>₹{item.price}</p>
+                    
+                    {/* Action buttons */}
+                    <div className="d-flex mt-3">
+                      <button
+                        className="btn btn-sm me-2"
+                        onClick={() => handleEditClick(item)}
+                        style={{ 
+                          backgroundColor: colors.accent, 
+                          color: "white",
+                          borderRadius: "6px",
+                          transition: "all 0.2s",
+                        }}
+                        disabled={isLoading}
+                      >
+                        <Edit size={16} className="me-1" /> Edit
+                      </button>
+                      <button
+                        className="btn btn-sm"
+                        onClick={() => handleDeleteClick(item._id)}
+                        style={{ 
+                          backgroundColor: colors.danger, 
+                          color: "white",
+                          borderRadius: "6px",
+                          transition: "all 0.2s",
+                        }}
+                        disabled={isLoading}
+                      >
+                        <Trash2 size={16} className="me-1" /> Delete
+                      </button>
+                    </div>
+                    
+                    {/* Delete confirmation overlay */}
+                    {showDeleteConfirm === item._id && (
+                      <div 
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: "rgba(0,0,0,0.8)",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          padding: "20px",
+                          borderRadius: "12px",
+                          animation: "fadeIn 0.2s",
+                          zIndex: 10
+                        }}
+                      >
+                        <p style={{ color: "white", fontWeight: "600", textAlign: "center" }}>
+                          Are you sure you want to delete "{item.name}"?
+                        </p>
+                        <div className="d-flex gap-2 mt-3">
+                          <button 
+                            className="btn btn-danger"
+                            onClick={() => handleConfirmDelete(item._id)}
+                            disabled={isLoading}
+                          >
+                            {isLoading ? "Deleting..." : "Yes, Delete"}
+                          </button>
+                          <button 
+                            className="btn btn-secondary"
+                            onClick={handleCancelDelete}
+                            disabled={isLoading}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
