@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 // Remove the Navbar import since it's already in your layout
 // import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import axios from "axios";
 import { Calendar, Package2, CreditCard, TrendingUp, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
 
@@ -389,7 +388,6 @@ export default function Orders() {
         )}
       </div>
       
-      <Footer />
     </div>
   );
 }

@@ -11,6 +11,7 @@ const homemakerSchema = new mongoose.Schema({
   experience: String,
   dietaryPreferences: [String],
   profilePic: String,
+  bio: String,
 });
 
 module.exports = mongoose.model("Homemaker", homemakerSchema);

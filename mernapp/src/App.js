@@ -10,6 +10,7 @@ import Orders from "./screens/Orders";
 import Favorites from "./screens/Favorites";
 import Cart from "./screens/Cart";
 import Checkout from "./screens/Checkout";
+import LoginSelection from "./screens/LoginSelection";
 import { CustomerLogin, HomemakerLogin, AdminLogin } from "./screens/Login";
 import CustomerSignup from "./screens/CustomerSignup";
 import HomemakerSignup from "./screens/HomemakerSignup";
@@ -20,6 +21,9 @@ import Homemakers from "./screens/Homemakers";
 import HomemakerProfile from "./screens/HomemakerProfile";
 import ViewHomemakers from "./screens/ViewHomemakers";
 import HomemakerList from "./screens/HomemakerList";
+import ChefList from "./screens/ChefList";
+import AdminDashboard from "./screens/AdminDashboard";
+import CalorieSuggestion from './screens/CalorieSuggestion';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,30 +47,7 @@ const App = () => {
     <CartProvider>
       <Router>
         <Navbar />
-        <div className="container mt-4">
-        <h1 
-      style={{ 
-        textAlign: "center", 
-        color: "#ff7700", 
-        fontFamily: "'Playfair Display', serif", 
-        fontWeight: "700",
-        fontSize: "2.5rem",
-        margin: "1.5rem 0",
-        textShadow: "1px 1px 3px rgba(0, 0, 0, 0.1)",
-        position: "relative",
-        padding: "0.5rem 0"
-      }}
-    >
-      <span
-        style={{
-          background: "linear-gradient(transparent 70%, rgba(255, 149, 0, 0.2) 70%)",
-          padding: "0 10px"
-        }}
-      >
-        Home Food App
-      </span>
-    </h1>
-
+        <>
           <motion.div
             key={window.location.pathname} // Ensure each route has its own animation
             initial={{ opacity: 0 }}
@@ -88,12 +69,16 @@ const App = () => {
               <Route path="/reset-password/:token" element={<ResetPassword />} />
               <Route path="/view-homemakers" element={<ViewHomemakers />} />
               <Route path="/list-homemakers" element={<HomemakerList />} />
+              <Route path="/chefs" element={<ChefList />} />
               {/* Authentication Routes */}
+              <Route path="/login" element={<LoginSelection />} />
               <Route path="/customer-login" element={<CustomerLogin />} />
               <Route path="/homemaker-login" element={<HomemakerLogin />} />
               <Route path="/admin-login" element={<AdminLogin />} />
+              <Route path="/admin-dashboard" element={<AdminDashboard />} />
               <Route path="/customer-signup" element={<CustomerSignup />} />
               <Route path="/homemaker-signup" element={<HomemakerSignup />} />
+              <Route path="/calorie-suggestion" element={<CalorieSuggestion />} />
 
               {/* Routes requiring authentication */}
               <Route
@@ -110,7 +95,7 @@ const App = () => {
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </motion.div>
-        </div>
+        </>
       </Router>
     </CartProvider>
   );

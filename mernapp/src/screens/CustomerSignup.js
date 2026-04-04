@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { User, Mail, Lock, Phone, Eye, EyeOff, AlertCircle, ShoppingBag } from "lucide-react";
 import "./Signup.css";
 
 const CustomerSignup = () => {
   const [user, setUser] = useState({ name: "", email: "", password: "", phone: "" });
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
     // Load the Google Sign-In API script
     const loadGoogleScript = () => {
-      // Load the Google API script
       const script = document.createElement("script");
       script.src = "https://accounts.google.com/gsi/client";
       script.async = true;
       script.defer = true;
       document.body.appendChild(script);
       
-      // Initialize Google Sign-In when script loads
       script.onload = () => {
         if (window.google) {
           initGoogleSignIn();
@@ -29,7 +29,6 @@ const CustomerSignup = () => {
     loadGoogleScript();
     
     return () => {
-      // Cleanup - remove any Google Sign-In related elements
       const googleScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
       if (googleScript) {
         googleScript.remove();
@@ -39,7 +38,7 @@ const CustomerSignup = () => {
   
   const initGoogleSignIn = () => {
     window.google.accounts.id.initialize({
-      client_id: "637222310524-53gmf5vs1ri0msave46ilebd75j17ept.apps.googleusercontent.com", // Replace with your actual Google Client ID
+      client_id: "637222310524-53gmf5vs1ri0msave46ilebd75j17ept.apps.googleusercontent.com", 
       callback: handleGoogleSignIn,
       auto_select: false
     });
@@ -50,17 +49,14 @@ const CustomerSignup = () => {
         theme: "outline", 
         size: "large",
         text: "signup_with",
-        width: 250
+        width: 320 // matches new premium input widths roughly
       }
     );
   };
   
   const handleGoogleSignIn = async (response) => {
     try {
-      // Google Sign-In was successful, get user info from the response
       const { credential } = response;
-      
-      // Send the token to your backend
       const result = await axios.post("http://localhost:5000/api/customer-auth/google-signup", {
         token: credential
       });
@@ -89,7 +85,6 @@ const CustomerSignup = () => {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
 
-    // Real-time validation
     if (name === "password" && !validatePassword(value)) {
       setErrors((prev) => ({ ...prev, password: "Password must be 8+ chars, 1 uppercase, 1 number, 1 special char." }));
     } else if (name === "password") {
@@ -105,7 +100,7 @@ const CustomerSignup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors({}); // Reset errors
+    setErrors({}); 
 
     if (!validatePassword(user.password)) {
       setErrors((prev) => ({ ...prev, password: "Password must be 8+ chars, 1 uppercase, 1 number, 1 special char." }));
@@ -128,71 +123,127 @@ const CustomerSignup = () => {
   };
 
   return (
-    <div className="signup-container">
-      <div className="signup-card">
-        <h1>Customer Signup</h1>
-        {errors.general && <div className="error-message">{errors.general}</div>}
-        
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            required
-            onChange={handleChange}
-            value={user.name}
-          />
-
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            required
-            onChange={handleChange}
-            value={user.email}
-          />
-
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            required
-            onChange={handleChange}
-            value={user.password}
-          />
-          {errors.password && <small className="error-text">{errors.password}</small>}
-
-          <input
-            type="tel"
-            name="phone"
-            placeholder="Phone Number"
-            required
-            onChange={handleChange}
-            value={user.phone}
-          />
-          {errors.phone && <small className="error-text">{errors.phone}</small>}
-
-          <button type="submit" className="signup-button">Sign Up</button>
-        </form>
-        
-        <div className="or-divider">
-          <span>OR</span>
+    <div className="premium-signup-wrapper">
+      
+      {/* Left Panel Image Banner */}
+      <div className="premium-signup-left">
+        <img 
+          src="https://images.unsplash.com/photo-1543339308-43e59d6b73a6?q=80&w=2670&auto=format&fit=crop" 
+          alt="Delicious food platter" 
+          className="premium-signup-image"
+        />
+        <div className="premium-signup-overlay"></div>
+        <div className="premium-signup-left-content">
+          <h1>Taste the Comfort of Home.</h1>
+          <p>Discover, order, and savor authentic homemade meals crafted by local chefs directly to your doorstep.</p>
         </div>
-        
-        <div className="social-signup">
-          <div id="google-signin-button"></div>
-        </div>
+      </div>
 
-        <p>
-          Already have an account?  
-          <span 
-            className="login-link"
-            onClick={() => navigate("/customer-login")}
-            style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
-          >
-            Login here
-          </span>
-        </p>
+      {/* Right Panel Form Container */}
+      <div className="premium-signup-right">
+        <div className="premium-signup-card">
+          
+          <div className="premium-signup-header">
+            <div className="premium-signup-icon">
+              <ShoppingBag size={28} />
+            </div>
+            <h2>Create Customer Account</h2>
+            <p>Sign up to start ordering from local homemakers</p>
+          </div>
+
+          {errors.general && (
+            <div className="premium-error-msg">
+              <AlertCircle size={18} /> {errors.general}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            
+            <div className="premium-form-section" style={{ marginBottom: "1rem" }}>
+              
+              <div className="premium-input-group">
+                <input
+                  type="text"
+                  name="name"
+                  className="premium-input"
+                  placeholder="Full Name"
+                  required
+                  onChange={handleChange}
+                  value={user.name}
+                />
+                <User size={20} className="premium-input-icon" />
+              </div>
+
+              <div className="premium-input-group">
+                <input
+                  type="email"
+                  name="email"
+                  className="premium-input"
+                  placeholder="Email Address"
+                  required
+                  onChange={handleChange}
+                  value={user.email}
+                />
+                <Mail size={20} className="premium-input-icon" />
+              </div>
+
+              <div className="premium-input-group">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  className={`premium-input ${errors.password ? "premium-input-error" : ""}`}
+                  placeholder="Password"
+                  required
+                  onChange={handleChange}
+                  value={user.password}
+                />
+                <Lock size={20} className="premium-input-icon" />
+                <button 
+                  type="button"
+                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer' }}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+                {errors.password && <span className="premium-error-text">{errors.password}</span>}
+              </div>
+
+              <div className="premium-input-group">
+                <input
+                  type="tel"
+                  name="phone"
+                  className={`premium-input ${errors.phone ? "premium-input-error" : ""}`}
+                  placeholder="Phone Number (10 digits)"
+                  required
+                  onChange={handleChange}
+                  value={user.phone}
+                />
+                <Phone size={20} className="premium-input-icon" />
+                {errors.phone && <span className="premium-error-text">{errors.phone}</span>}
+              </div>
+            </div>
+
+            <button type="submit" className="premium-submit-btn">
+              Sign Up
+            </button>
+          </form>
+
+          {/* Social Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', margin: '1.5rem 0' }}>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#E5E7EB' }}></div>
+            <span style={{ padding: '0 1rem', color: '#9CA3AF', fontSize: '0.85rem', fontWeight: 500 }}>OR</span>
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#E5E7EB' }}></div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+            <div id="google-signin-button"></div>
+          </div>
+
+          <div className="premium-form-footer">
+            Already have an account? <Link to="/customer-login" className="premium-link">Login here</Link>
+          </div>
+
+        </div>
       </div>
     </div>
   );

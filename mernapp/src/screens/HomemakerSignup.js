@@ -1,239 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { User, Mail, Lock, Phone, MapPin, ChefHat, Eye, EyeOff, AlertCircle } from "lucide-react";
 import "./Signup.css";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const cuisinesList = ["North Indian", "South Indian", "Chinese", "Italian", "Mexican", "Bengali", "Gujarati"];
 const experienceLevels = ["Less than 1 year", "1-3 years", "3-5 years", "5+ years"];
 const dietaryOptions = ["Vegan", "Gluten-Free", "Jain", "Low-Carb"];
-
-// Add this CSS to your Signup.css file
-const additionalCSS = `
-  /* Enhanced styling for the signup page */
-  .signup-container {
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem;
-    background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Floating food animations */
-  .floating-foods {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .food-item {
-    position: absolute;
-    opacity: 0.6;
-    font-size: 2rem;
-    animation: float-animation 8s ease-in-out infinite;
-  }
-
-  @keyframes float-animation {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(5deg); }
-  }
-
-  /* Background pattern */
-  .bg-pattern {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('/path-to-your-pattern.jpg'); /* You can replace this with an actual pattern */
-    background-repeat: repeat;
-    background-size: 200px;
-    opacity: 0.05;
-    z-index: 0;
-  }
-
-  /* Enhanced signup card */
-  .signup-card {
-    width: 100%;
-    max-width: 500px;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Enhanced header */
-  .signup-heading {
-    background: linear-gradient(to right, #ff7043, #ff5722);
-    color: white;
-    padding: 1.5rem;
-    margin: 0;
-    font-size: 1.5rem;
-    text-align: center;
-    font-weight: 600;
-    position: relative;
-  }
-
-  .signup-heading::after {
-    content: "Join our community of home chefs";
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 400;
-    margin-top: 0.25rem;
-    opacity: 0.9;
-  }
-
-  /* Form styling */
-  form {
-    padding: 1.5rem;
-  }
-
-  input, select {
-    width: 100%;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-  }
-
-  input:focus, select:focus {
-    border-color: #ff7043;
-    box-shadow: 0 0 0 2px rgba(255, 112, 67, 0.2);
-    outline: none;
-  }
-
-  input[type="checkbox"] {
-    width: auto;
-    margin-right: 0.5rem;
-  }
-
-  /* Label styling */
-  label {
-    font-weight: 500;
-    color: #555;
-    margin-bottom: 0.5rem;
-    display: block;
-  }
-
-  /* Checkbox groups */
-  .checkbox-group {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .checkbox-group label {
-    display: flex;
-    align-items: center;
-    font-weight: normal;
-    cursor: pointer;
-  }
-
-  /* Password container */
-  .password-container {
-    position: relative;
-  }
-
-  .eye-icon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #757575;
-  }
-
-  /* Error message */
-  .error-message {
-    background-color: #ffebee;
-    color: #d32f2f;
-    padding: 0.75rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-  }
-
-  .error-message::before {
-    content: "⚠️";
-    margin-right: 0.5rem;
-  }
-
-  .error-text {
-    color: #d32f2f;
-    font-size: 0.8rem;
-    margin-top: -0.5rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .input-error {
-    border-color: #d32f2f;
-  }
-
-  /* Submit button */
-  .signup-button {
-    width: 100%;
-    padding: 0.75rem;
-    background: linear-gradient(to right, #ff7043, #ff5722);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 1rem;
-  }
-
-  .signup-button:hover {
-    background: linear-gradient(to right, #ff5722, #f4511e);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 112, 67, 0.3);
-  }
-
-  /* Note styling */
-  .highlighted-note {
-    background-color: #fff8e1;
-    border-left: 4px solid #ffc107;
-    padding: 1rem;
-    border-radius: 4px;
-    margin: 1rem 0;
-  }
-
-  .highlighted-note strong {
-    color: #f57c00;
-  }
-
-  .note-text {
-    margin-left: 0.5rem;
-    color: #795548;
-  }
-
-  /* Sections */
-  .form-section {
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .form-section h3 {
-    color: #424242;
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-  }
-`;
 
 const HomemakerSignup = () => {
   const [user, setUser] = useState({
@@ -247,33 +20,14 @@ const HomemakerSignup = () => {
     experience: "",
     profilePic: null,
     dietaryPreferences: [],
+    bio: "",
   });
 
   const [error, setError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [floatingFoods, setFloatingFoods] = useState([]);
   const navigate = useNavigate();
-
-  // Initialize floating food items
-  useEffect(() => {
-    const foodEmojis = ["🍕", "🍜", "🍛", "🥘", "🍲", "🥗", "🍱", "🥪", "🌮", "🥐", "🍔", "🍣", "🍎", "🍇", "🥑", "🍊"];
-    const foods = [];
-    
-    for (let i = 0; i < 16; i++) {
-      foods.push({
-        emoji: foodEmojis[i % foodEmojis.length],
-        top: Math.random() * 80 + 10, // Keep within 10-90% of the screen
-        left: Math.random() * 80 + 10, // Keep within 10-90% of the screen
-        animationDuration: 5 + Math.random() * 7,
-        animationDelay: Math.random() * 5,
-        size: 24 + Math.floor(Math.random() * 24)
-      });
-    }
-    
-    setFloatingFoods(foods);
-  }, []);
 
   const validatePassword = (password) => {
     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
@@ -334,7 +88,6 @@ const HomemakerSignup = () => {
         }
       });
 
-      // ✅ Fixed endpoint URL
       await axios.post("http://localhost:5000/api/auth/signup", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -347,73 +100,124 @@ const HomemakerSignup = () => {
   };
 
   return (
-    <>
-      {/* Add the additional CSS */}
-      <style>{additionalCSS}</style>
+    <div className="premium-signup-wrapper">
       
-      <div className="signup-container">
-        {/* Floating food background */}
-        <div className="floating-foods">
-          {floatingFoods.map((food, idx) => (
-            <div
-              key={idx}
-              className="food-item"
-              style={{
-                top: `${food.top}%`,
-                left: `${food.left}%`,
-                fontSize: `${food.size}px`,
-                animationDuration: `${food.animationDuration}s`,
-                animationDelay: `${food.animationDelay}s`,
-              }}
-            >
-              {food.emoji}
-            </div>
-          ))}
+      {/* Left Panel Image Banner */}
+      <div className="premium-signup-left">
+        <img 
+          src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2670&auto=format&fit=crop" 
+          alt="Cooking environment" 
+          className="premium-signup-image"
+        />
+        <div className="premium-signup-overlay"></div>
+        <div className="premium-signup-left-content">
+          <h1>Turn Your Cooking Into Income.</h1>
+          <p>Join thousands of local homemakers selling authentic homemade meals to happy customers every day.</p>
         </div>
-        
-        {/* Background pattern */}
-        <div className="bg-pattern"></div>
-        
-        <div className="signup-card">
-          <h6 className="signup-heading">Homemaker Signup</h6>
+      </div>
 
-          {error && <div className="error-message">{error}</div>}
+      {/* Right Panel Form Container */}
+      <div className="premium-signup-right">
+        <div className="premium-signup-card">
+          
+          <div className="premium-signup-header">
+            <div className="premium-signup-icon">
+              <ChefHat size={28} />
+            </div>
+            <h2>Become a Homemaker</h2>
+            <p>Start selling your homemade food today</p>
+          </div>
+
+          {error && (
+            <div className="premium-error-msg">
+              <AlertCircle size={18} /> {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
-            <div className="form-section">
-              <h3>Personal Information</h3>
-              <input type="text" placeholder="Full Name" required onChange={(e) => setUser({ ...user, name: e.target.value })} value={user.name} />
-              <input type="email" placeholder="Email" required onChange={(e) => setUser({ ...user, email: e.target.value })} value={user.email} />
+            
+            {/* SECTION 1: Personal Info */}
+            <div className="premium-form-section">
+              <div className="premium-form-section-title">Personal Information</div>
+              
+              <div className="premium-input-group">
+                <input 
+                  type="text" 
+                  className="premium-input" 
+                  placeholder="Full Name" 
+                  required 
+                  onChange={(e) => setUser({ ...user, name: e.target.value })} 
+                  value={user.name} 
+                />
+                <User size={20} className="premium-input-icon" />
+              </div>
+              
+              <div className="premium-input-group">
+                <input 
+                  type="email" 
+                  className="premium-input" 
+                  placeholder="Email Address" 
+                  required 
+                  onChange={(e) => setUser({ ...user, email: e.target.value })} 
+                  value={user.email} 
+                />
+                <Mail size={20} className="premium-input-icon" />
+              </div>
 
-              <div className="password-container">
+              <div className="premium-input-group">
                 <input
                   type={showPassword ? "text" : "password"}
+                  className={`premium-input ${passwordError ? "premium-input-error" : ""}`}
                   placeholder="Password"
                   required
                   onChange={handlePasswordChange}
                   value={user.password}
-                  className={passwordError ? "input-error" : ""}
                 />
-                <span className="eye-icon" onClick={togglePasswordVisibility}>
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
+                <Lock size={20} className="premium-input-icon" />
+                <button 
+                  type="button"
+                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer' }}
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+                {passwordError && <span className="premium-error-text">{passwordError}</span>}
               </div>
-              {passwordError && <div className="error-text">{passwordError}</div>}
 
-              <input type="tel" placeholder="Phone Number" required onChange={handlePhoneInput} value={user.phone} />
-              {phoneError && <div className="error-text">{phoneError}</div>}
+              <div className="premium-input-group">
+                <input 
+                  type="tel" 
+                  className={`premium-input ${phoneError ? "premium-input-error" : ""}`}
+                  placeholder="Phone Number" 
+                  required 
+                  onChange={handlePhoneInput} 
+                  value={user.phone} 
+                />
+                <Phone size={20} className="premium-input-icon" />
+                {phoneError && <span className="premium-error-text">{phoneError}</span>}
+              </div>
 
-              <label>Address:</label>
-              <input type="text" placeholder="Enter Address" onChange={(e) => setUser({ ...user, address: e.target.value })} value={user.address} required />
+              <div className="premium-input-group">
+                <input 
+                  type="text" 
+                  className="premium-input" 
+                  placeholder="Full Delivery Address" 
+                  onChange={(e) => setUser({ ...user, address: e.target.value })} 
+                  value={user.address} 
+                  required 
+                />
+                <MapPin size={20} className="premium-input-icon" />
+              </div>
             </div>
 
-            <div className="form-section">
-              <h3>Cooking Preferences</h3>
+            {/* SECTION 2: Cooking Preferences */}
+            <div className="premium-form-section">
+              <div className="premium-form-section-title">Cooking Specialities</div>
               
-              {/* Dietary Preferences */}
-              <label>Dietary Preferences:</label>
-              <div className="checkbox-group">
+              <p style={{ fontSize: '0.9rem', color: '#4B5563', marginBottom: '8px' }}>Dietary Profile:</p>
+              <div className="premium-checkbox-grid">
                 {dietaryOptions.map((option) => (
-                  <label key={option}>
+                  <label className="premium-checkbox-label" key={option}>
                     <input
                       type="checkbox"
                       value={option}
@@ -432,11 +236,10 @@ const HomemakerSignup = () => {
                 ))}
               </div>
 
-              {/* Cuisine Selection */}
-              <label>Cuisines You Can Cook:</label>
-              <div className="checkbox-group">
+              <p style={{ fontSize: '0.9rem', color: '#4B5563', marginBottom: '8px', marginTop: '1rem' }}>Cuisines You Cook:</p>
+              <div className="premium-checkbox-grid">
                 {cuisinesList.map((cuisine) => (
-                  <label key={cuisine}>
+                  <label className="premium-checkbox-label" key={cuisine}>
                     <input
                       type="checkbox"
                       value={cuisine}
@@ -454,49 +257,74 @@ const HomemakerSignup = () => {
                   </label>
                 ))}
               </div>
+              
+              <div className="premium-input-group mt-3" style={{ marginTop: '1rem' }}>
+                <input
+                  type="text"
+                  className="premium-input"
+                  style={{ paddingLeft: '14px' }}
+                  placeholder="Other Custom Cuisine? (Optional)"
+                  value={user.customCuisine}
+                  onChange={(e) => setUser({ ...user, customCuisine: e.target.value })}
+                />
+              </div>
+
+              <div className="premium-input-group mt-3" style={{ marginTop: '1rem' }}>
+                <select
+                  className="premium-input"
+                  style={{ paddingLeft: '14px' }}
+                  value={user.experience}
+                  onChange={(e) => setUser({ ...user, experience: e.target.value })}
+                  required
+                >
+                  <option value="">Select Professional Experience</option>
+                  {experienceLevels.map((level) => (
+                    <option key={level} value={level}>
+                      {level}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="premium-input-group mt-3" style={{ marginTop: '1rem' }}>
+                <textarea
+                  className="premium-input"
+                  style={{ paddingLeft: '14px', height: '100px', paddingTop: '10px' }}
+                  placeholder="About Me / Short Bio (Describe your cooking passion...)"
+                  value={user.bio}
+                  onChange={(e) => setUser({ ...user, bio: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* SECTION 3: Profile Finalization */}
+            <div className="premium-form-section">
+              <div className="premium-form-section-title">Profile Picture</div>
               <input
-                type="text"
-                placeholder="Custom Cuisine"
-                value={user.customCuisine}
-                onChange={(e) => setUser({ ...user, customCuisine: e.target.value })}
+                type="file"
+                accept="image/*"
+                className="premium-input"
+                style={{ padding: '9px 14px' }}
+                onChange={(e) => setUser({ ...user, profilePic: e.target.files[0] })}
               />
-
-              {/* Experience Level */}
-              <label>Experience Level:</label>
-              <select
-                value={user.experience}
-                onChange={(e) => setUser({ ...user, experience: e.target.value })}
-                required
-              >
-                <option value="">Select Experience Level</option>
-                {experienceLevels.map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
-              </select>
             </div>
 
-            {/* Profile Pic Upload */}
-            <label>Upload Profile Picture:</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setUser({ ...user, profilePic: e.target.files[0] })}
-            />
-
-            <div className="highlighted-note">
-              <strong>⚠️ Important:</strong>
-              <span className="note-text">
-                Homemakers must cook <strong>only one</strong> food item per day to ensure hygiene and maintain quality.
-              </span>
+            <div className="premium-alert-note">
+              <strong>⚠️ Important Policy:</strong> Homemakers are structured to cook <strong>only one</strong> designated food item per day to ensure pristine hygiene standards and maximum quality.
             </div>
 
-            <button type="submit" className="signup-button">Sign Up</button>
+            <button type="submit" className="premium-submit-btn">
+              Create Homemaker Account
+            </button>
           </form>
+
+          <div className="premium-form-footer">
+            Already have a Homemaker account? <Link to="/homemaker-login" className="premium-link">Login here</Link>
+          </div>
+
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

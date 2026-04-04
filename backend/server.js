@@ -9,6 +9,9 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
 const User = require('./models/User');  // Assuming you have a User model for your database
+const Customer = require('./models/Customer');
+const Homemaker = require('./models/Homemaker');
+const Product = require('./models/Product');
 const { OAuth2Client } = require('google-auth-library');  // Google OAuth library
 
 // Import routes
@@ -18,13 +21,16 @@ const orderRoutes = require('./routes/orderRoutes');
 const productRoutes = require('./routes/productRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const viewHomemakersRoute = require('./routes/viewHomemakersRoute');
+const aiRoutes = require('./routes/aiRoutes.js');
 const customerAuthRoutes = require('./routes/customerGoogleAuth');
+const calorieSuggestionRoute = require('./routes/calorieSuggestionRoute');
 
 dotenv.config();
 
 const app = express();
 const listEndpoints = require('express-list-endpoints');
 
+console.log(listEndpoints)
 // Middleware setup
 app.use(cors());
 app.use(express.json());
@@ -33,6 +39,8 @@ app.use(helmet());  // Adds security-related HTTP headers
 
 // Serve static profile pictures (e.g., for homemakers)
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
+// Serve uploaded product images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Optional: Log incoming requests for debugging purposes
 app.use((req, res, next) => {
@@ -47,7 +55,28 @@ app.use('/api/products', productRoutes);  // Product/menu routes
 app.use('/api/homemaker', homemakerDashboardRoutes); // Homemaker dashboard routes
 app.use('/api/customer-auth', customerRoutes); // Customer signup/login routes
 app.use('/api/view-homemakers', viewHomemakersRoute);
+app.use('/api/ai', aiRoutes);
 app.use('/api/customer-auth/google', customerAuthRoutes);
+app.use('/api', calorieSuggestionRoute);
+
+// Admin Stats Route
+app.post('/api/admin/stats', async (req, res) => {
+  try {
+    const totalUsers = await Customer.countDocuments();
+    const totalHomemakers = await Homemaker.countDocuments();
+    const totalFoodItems = await Product.countDocuments();
+
+    res.json({
+      totalUsers,
+      totalHomemakers,
+      totalFoodItems
+    });
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ message: 'Error fetching stats' });
+  }
+});
+
 
 // Google Sign-In Route for Signup
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -165,7 +194,12 @@ app.post("/api/auth/reset-password/:token", async (req, res) => {
   }
 });
 
+
 // Fallback 404 handler
+
+
+// ✅ Fallback 404 handler
+
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
@@ -180,6 +214,8 @@ const connectDB = async () => {
     console.log('✅ MongoDB connected');
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    console.log(listEndpoints(app));
+  
   } catch (err) {
     console.error('❌ MongoDB connection error:', err);
     process.exit(1);

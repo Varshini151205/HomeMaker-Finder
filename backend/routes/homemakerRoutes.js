@@ -174,4 +174,39 @@ router.get("/", async (req, res) => {
   }
 });
 
+// =================== VIEW SPECIFIC HOMEMAKER ===================
+router.get("/:id", async (req, res) => {
+  try {
+    const homemaker = await Homemaker.findById(req.params.id);
+    if (!homemaker) {
+      return res.status(404).json({ message: "Homemaker not found" });
+    }
+    res.json(homemaker);
+  } catch (error) {
+    console.error("Error fetching homemaker profile:", error);
+    res.status(500).json({ message: "Server error fetching homemaker" });
+  }
+});
+
+// =================== UPDATE BIO / PROFILE ===================
+const auth = require("../middleware/auth");
+router.put("/profile/:id", auth, async (req, res) => {
+  try {
+    const homemaker = await Homemaker.findById(req.params.id);
+    if (!homemaker) {
+      return res.status(404).json({ message: "Homemaker not found" });
+    }
+
+    if (req.body.bio !== undefined) {
+      homemaker.bio = req.body.bio;
+    }
+
+    await homemaker.save();
+    res.status(200).json({ message: "Profile updated successfully" });
+  } catch (error) {
+    console.error("Error updating homemaker bio:", error);
+    res.status(500).json({ message: "Server error updating bio" });
+  }
+});
+
 module.exports = router;
