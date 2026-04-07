@@ -40,14 +40,19 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 
 // Static folders
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
-app.use('/uploads', (req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  next();
-}, express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+  }
+}));
 
 // Debug logging
 app.use((req, res, next) => {
