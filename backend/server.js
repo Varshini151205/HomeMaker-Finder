@@ -73,23 +73,6 @@ app.use('/api/customer-auth/google', customerAuthRoutes);
 app.use('/api', calorieSuggestionRoute);
 
 
-// Admin Stats Route
-app.post('/api/admin/stats', async (req, res) => {
-  try {
-    const totalUsers = await Customer.countDocuments();
-    const totalHomemakers = await Homemaker.countDocuments();
-    const totalFoodItems = await Product.countDocuments();
-
-    res.json({
-      totalUsers,
-      totalHomemakers,
-      totalFoodItems
-    });
-  } catch (error) {
-    console.error('Error fetching stats:', error);
-    res.status(500).json({ message: 'Error fetching stats' });
-  }
-});
 
 // Google Auth
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
