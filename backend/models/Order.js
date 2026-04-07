@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
+  homemakerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Homemaker"
+  },
   items: Array,
   total: Number,
   userDetails: {
@@ -12,6 +16,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
+    enum: ["Placed", "Pending", "Preparing", "Delivered"],
     default: "Placed"
   },
   createdAt: {
