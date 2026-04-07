@@ -101,7 +101,7 @@ router.post("/signup", upload.single("profilePic"), async (req, res) => {
 // =================== LOGIN ===================
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts max
+  max: 100, // 5 attempts max
   message: "Too many login attempts. Please try again later.",
 });
 

@@ -1,18 +1,14 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const authenticate = require("../middleware/auth"); // JWT middleware
-const HomemakerController = require("../controllers/homemakerController");
+const productController = require('../controllers/homemakerController');
+const auth = require('../middleware/auth');
 
-// All routes below require homemaker authentication
-router.use(authenticate);
+// Get products by homemaker ID (no auth required - public endpoint)
+router.get('/homemaker/:homemakerId', productController.getProductsByHomemaker);
 
-// Product Management
-router.get("/products", HomemakerController.getProductsByHomemaker);
-router.post("/products", HomemakerController.addProduct);
-router.put("/products/:id", HomemakerController.updateProduct);
-router.delete("/products/:id", HomemakerController.deleteProduct);
-
-// Homemaker Profile
-router.get("/profile", HomemakerController.getHomemakerProfile);
+// Protected routes - require authentication
+router.post('/', auth, productController.addProduct);
+router.put('/:id', auth, productController.updateProduct);
+router.delete('/:id', auth, productController.deleteProduct);
 
 module.exports = router;

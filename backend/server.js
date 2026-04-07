@@ -8,15 +8,18 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
-const User = require('./models/User');  // Assuming you have a User model for your database
+const { OAuth2Client } = require('google-auth-library');
+
+// Models
+const User = require('./models/User');
 const Customer = require('./models/Customer');
 const Homemaker = require('./models/Homemaker');
 const Product = require('./models/Product');
-const { OAuth2Client } = require('google-auth-library');  // Google OAuth library
 
-// Import routes
-const homemakerDashboardRoutes = require('./routes/homemakerDashboardRoutes'); 
+// Routes
+const homemakerDashboardRoutes = require('./routes/homemakerDashboardRoutes');
 const homemakerRoutes = require('./routes/homemakerRoutes');
+const adminRoutes = require('./routes/adminRoutes');   // ✅ keep this
 const orderRoutes = require('./routes/orderRoutes');
 const productRoutes = require('./routes/productRoutes');
 const customerRoutes = require('./routes/customerRoutes');
@@ -27,34 +30,39 @@ const calorieSuggestionRoute = require('./routes/calorieSuggestionRoute');
 
 dotenv.config();
 
-const app = express();
-const listEndpoints = require('express-list-endpoints');
+const app = express();   // ✅ MUST come before app.use
 
-console.log(listEndpoints)
-// Middleware setup
-app.use(cors());
+// Middleware
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(helmet());  // Adds security-related HTTP headers
+app.use(helmet());
 
-// Serve static profile pictures (e.g., for homemakers)
+// Static folders
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
-// Serve uploaded product images
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', (req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
-// Optional: Log incoming requests for debugging purposes
+// Debug logging
 app.use((req, res, next) => {
   console.log(`${req.method} request made to: ${req.path}`);
   next();
 });
 
-// Import Routes and set up API prefixes
-app.use('/api/auth', homemakerRoutes);    // Homemaker signup/login
-app.use('/api/orders', orderRoutes);      // Orders-related routes
-app.use('/api/products', productRoutes);  // Product/menu routes
-app.use('/api/homemaker', homemakerDashboardRoutes); // Homemaker dashboard routes
-app.use('/api/customer-auth', customerRoutes); // Customer signup/login routes
+// ✅ ROUTES (Correct Order)
+app.use('/api/auth', homemakerRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/homemaker', homemakerDashboardRoutes);
+app.use('/api/customer-auth', customerRoutes);
 app.use('/api/view-homemakers', viewHomemakersRoute);
+app.use('/api/admin', adminRoutes);   // ✅ FIXED POSITION
 app.use('/api/ai', aiRoutes);
 app.use('/api/customer-auth/google', customerAuthRoutes);
 app.use('/api', calorieSuggestionRoute);
@@ -77,44 +85,37 @@ app.post('/api/admin/stats', async (req, res) => {
   }
 });
 
-
-// Google Sign-In Route for Signup
+// Google Auth
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 app.post('/api/customer-auth/google-signup', async (req, res) => {
   try {
     const { token } = req.body;
 
-    // Verify the token
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID
     });
 
-    // Get user payload from the token
     const payload = ticket.getPayload();
 
-    // Check if user already exists
     let customer = await User.findOne({ email: payload.email });
 
     if (customer) {
-      return res.status(400).json({ message: 'User already exists. Please login instead.' });
+      return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create a new customer from Google data
     customer = new User({
       name: payload.name,
       email: payload.email,
-      password: Math.random().toString(36).slice(-8) + 'A1!',  // Random password
-      phone: '', // Phone is required in your model, you can handle it differently
+      password: Math.random().toString(36).slice(-8) + 'A1!',
+      phone: '',
       googleId: payload.sub,
-      picture: payload.picture  // Optional: Store Google profile picture
+      picture: payload.picture
     });
 
-    // Save customer to the database
     await customer.save();
 
-    // Return success response
     res.status(201).json({
       message: 'Google signup successful',
       user: {
@@ -123,25 +124,26 @@ app.post('/api/customer-auth/google-signup', async (req, res) => {
         email: customer.email
       }
     });
+
   } catch (error) {
-    console.error('Google auth error:', error);
-    res.status(500).json({ message: 'Google authentication failed' });
+    console.error(error);
+    res.status(500).json({ message: 'Google auth failed' });
   }
 });
 
-// Forgot password route
+// Forgot Password
 app.post("/api/auth/forgot-password", async (req, res) => {
   const { email } = req.body;
 
   try {
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "No account found with that email." });
-    }
+    if (!user) return res.status(400).json({ message: "No account found" });
 
     const resetToken = crypto.randomBytes(20).toString("hex");
+
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiry time
+    user.resetPasswordExpires = Date.now() + 3600000;
+
     await user.save();
 
     const transporter = nodemailer.createTransport({
@@ -153,72 +155,62 @@ app.post("/api/auth/forgot-password", async (req, res) => {
     });
 
     const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
+
     await transporter.sendMail({
       to: user.email,
-      subject: "Password Reset Request",
-      text: `Click on the following link to reset your password: ${resetLink}`,
+      subject: "Password Reset",
+      text: resetLink,
     });
 
-    res.status(200).json({ message: "Password reset link sent to your email." });
-  } catch (error) {
-    console.error("Error during forgot-password:", error);
-    res.status(500).json({ message: "Something went wrong." });
+    res.json({ message: "Reset link sent" });
+
+  } catch (err) {
+    res.status(500).json({ message: "Error" });
   }
 });
 
-// Reset password route
+// Reset Password
 app.post("/api/auth/reset-password/:token", async (req, res) => {
-  const { token } = req.params;
   const { password } = req.body;
 
   try {
     const user = await User.findOne({
-      resetPasswordToken: token,
+      resetPasswordToken: req.params.token,
       resetPasswordExpires: { $gt: Date.now() }
     });
 
-    if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token." });
-    }
+    if (!user) return res.status(400).json({ message: "Invalid token" });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    user.password = hashedPassword;
+    user.password = await bcrypt.hash(password, 10);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
+
     await user.save();
 
-    res.status(200).json({ message: "Password successfully updated." });
-  } catch (error) {
-    console.error("Error during reset-password:", error);
-    res.status(500).json({ message: "Something went wrong." });
+    res.json({ message: "Password updated" });
+
+  } catch (err) {
+    res.status(500).json({ message: "Error" });
   }
 });
 
-
-// Fallback 404 handler
-
-
-// ✅ Fallback 404 handler
-
+// 404 fallback
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Connect to MongoDB & Start Server
+// MongoDB Connection
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ MongoDB connected");
+
+    app.listen(process.env.PORT || 5000, () => {
+      console.log("🚀 Server running");
     });
-    console.log('✅ MongoDB connected');
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-    console.log(listEndpoints(app));
-  
+
   } catch (err) {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
+    console.error(err);
   }
 };
 
