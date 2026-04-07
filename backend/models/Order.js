@@ -1,24 +1,23 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
-  customerName: String,
-  customerEmail: String,
-  homemakerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Homemaker'
+  items: Array,
+  total: Number,
+  userDetails: {
+    name: String,
+    phone: String,
+    address: String,
+    instructions: String,
+    paymentMethod: String
   },
-  items: [
-    {
-      name: String,
-      quantity: Number,
-      price: Number
-    }
-  ],
-  totalAmount: Number,
   status: {
     type: String,
-    default: 'pending'
+    default: "Placed"
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
-}, { timestamps: true });
+});
 
 module.exports = mongoose.model('Order', orderSchema);

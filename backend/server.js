@@ -72,6 +72,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/customer-auth/google', customerAuthRoutes);
 app.use('/api', calorieSuggestionRoute);
 
+
 // Admin Stats Route
 app.post('/api/admin/stats', async (req, res) => {
   try {
