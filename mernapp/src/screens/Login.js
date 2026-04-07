@@ -4,14 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Users, ChefHat, ShieldCheck } from "lucide-react";
 import "./Login.css";
 
-// API routes - you can move these to a separate config file later
+// API routes
 const API_ROUTES = {
-  CUSTOMER_LOGIN: "http://localhost:5000/api/customer-auth/customer-login",
-  HOMEMAKER_LOGIN: "http://localhost:5000/api/auth/homemaker-login",
-  ADMIN_LOGIN: "http://localhost:5000/api/auth/admin-login"
+  CUSTOMER_LOGIN: "http://homemaker-backend-env.eba-kymmejmz.ap-south-1.elasticbeanstalk.com/api/customer-auth/customer-login",
+  HOMEMAKER_LOGIN: "http://homemaker-backend-env.eba-kymmejmz.ap-south-1.elasticbeanstalk.com/api/auth/homemaker-login",
+  ADMIN_LOGIN: "http://homemaker-backend-env.eba-kymmejmz.ap-south-1.elasticbeanstalk.com/api/admin/login"
 };
 
-// Generic Login Component — LOGIC UNCHANGED
+// Generic Login Component
 const Login = ({ type, apiUrl, redirect }) => {
   const [user, setUser] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -22,38 +22,46 @@ const Login = ({ type, apiUrl, redirect }) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-    
+
     try {
       if (!user.email || !user.password) {
         throw new Error("Please enter both email and password.");
       }
-      
+
       const response = await axios.post(apiUrl, user);
-      
-      if (response.data?.token) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("userRole", type); // Store role (Customer, Homemaker, Admin)
-        
+
+      // 🔥 FIX: Handle admin (no token) + others (with token)
+      if (response.data) {
+
+        // Save token if exists, else save dummy token for admin
+        const token = response.data.token || "admin-token";
+        localStorage.setItem("token", token);
+
+        // Save role
+        localStorage.setItem("userRole", type);
+
+        // Save IDs if present
         if (type === "Homemaker" && response.data.homemaker?._id) {
           localStorage.setItem("homemakerId", response.data.homemaker._id);
-          console.log("homemakers added"+response.data.homemaker._id);
-        } else if (type === "Customer" && response.data.customer?._id) {
+        } 
+        else if (type === "Customer" && response.data.customer?._id) {
           localStorage.setItem("customerId", response.data.customer._id);
         }
-        
+
         navigate(redirect);
       } else {
-        throw new Error("Authentication failed: Invalid response format");
+        throw new Error("Invalid response from server");
       }
+
     } catch (error) {
       if (!navigator.onLine) {
         setError("Network error. Please check your connection.");
       } else if (error.response?.status === 401) {
         setError("Invalid email or password.");
-      } else if (error.response?.status === 429) {
-        setError("Too many login attempts. Please try again later.");
+      } else if (error.response?.status === 404) {
+        setError("API route not found.");
       } else {
-        setError(error.message || "Login failed. Please try again.");
+        setError(error.response?.data?.message || error.message || "Login failed.");
       }
     } finally {
       setIsLoading(false);
@@ -73,7 +81,7 @@ const Login = ({ type, apiUrl, redirect }) => {
   );
 };
 
-// Role config — drives icon, color class, image, and taglines
+// Role Config
 const ROLE_CONFIG = {
   Customer: {
     icon: <Users size={28} />,
@@ -81,46 +89,45 @@ const ROLE_CONFIG = {
     subtitle: "Order delicious homemade meals near you",
     image: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?q=80&w=2670&auto=format&fit=crop",
     tagline: "Taste the Comfort of Home.",
-    taglineDesc: "Discover authentic homemade meals crafted by local chefs, delivered fresh to your door.",
+    taglineDesc: "Discover authentic homemade meals crafted by passionate local chefs.",
     signupRoute: "/customer-signup",
     signupLabel: "Sign up as Customer",
   },
   Homemaker: {
     icon: <ChefHat size={28} />,
     colorClass: "homemaker",
-    subtitle: "Manage your kitchen and incoming orders",
+    subtitle: "Manage your kitchen and orders seamlessly",
     image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2670&auto=format&fit=crop",
-    tagline: "Turn Your Cooking Into Income.",
-    taglineDesc: "Join thousands of homemakers earning from their passion for cooking every day.",
+    tagline: "Turn Cooking Into Income.",
+    taglineDesc: "Empower your passion for cooking and grow your business from home.",
     signupRoute: "/homemaker-signup",
     signupLabel: "Sign up as Homemaker",
   },
   Admin: {
     icon: <ShieldCheck size={28} />,
     colorClass: "admin",
-    subtitle: "Platform management and analytics",
+    subtitle: "Platform management and analytics hub",
     image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2670&auto=format&fit=crop",
-    tagline: "Powering Every Home Kitchen.",
-    taglineDesc: "Monitor operations, manage users, and keep the HomeMade Meals platform running smoothly.",
+    tagline: "Powering Every Kitchen.",
+    taglineDesc: "Monitor operations, manage users, and review platform insights.",
     signupRoute: null,
-    signupLabel: null,
   },
 };
 
-// Common Login Form Component — UI only
+// UI Component
 const LoginForm = ({ title, type, handleSubmit, setUser, user, error, isLoading }) => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
-  const config = ROLE_CONFIG[type] || ROLE_CONFIG.Customer;
+  const config = ROLE_CONFIG[type];
   const { icon, colorClass, subtitle, image, tagline, taglineDesc, signupRoute, signupLabel } = config;
 
   return (
     <div className="login-wrapper">
 
-      {/* LEFT PANEL */}
+      {/* LEFT */}
       <div className="login-left">
-        <img src={image} alt="Food background" className="login-left-image" />
+        <img src={image} alt="bg" className="login-left-image" />
         <div className="login-left-overlay" />
         <div className="login-left-content">
           <h1>{tagline}</h1>
@@ -128,11 +135,10 @@ const LoginForm = ({ title, type, handleSubmit, setUser, user, error, isLoading 
         </div>
       </div>
 
-      {/* RIGHT PANEL */}
+      {/* RIGHT */}
       <div className="login-right">
         <div className="login-card">
 
-          {/* Role Icon */}
           <div className={`login-role-icon ${colorClass}`}>
             {icon}
           </div>
@@ -140,7 +146,6 @@ const LoginForm = ({ title, type, handleSubmit, setUser, user, error, isLoading 
           <h2 className="login-title">{title}</h2>
           <p className="login-subtitle">{subtitle}</p>
 
-          {/* Error */}
           {error && (
             <div className="login-error">
               <AlertCircle size={18} /> {error}
@@ -151,83 +156,81 @@ const LoginForm = ({ title, type, handleSubmit, setUser, user, error, isLoading 
 
             {/* Email */}
             <div className="login-form-group">
-              <label className="login-label" htmlFor="email">Email Address</label>
+              <label className="login-label">Email Address</label>
               <div className="login-input-wrapper">
+                <Mail className="login-input-icon" size={18} />
                 <input
-                  id="email"
                   type="email"
                   className={`login-input ${colorClass}`}
                   placeholder="Enter your email"
                   required
-                  onChange={(e) => setUser({ ...user, email: e.target.value })}
                   value={user.email}
+                  onChange={(e) => setUser({ ...user, email: e.target.value })}
                   disabled={isLoading}
                 />
-                <Mail size={18} className="login-input-icon" />
               </div>
             </div>
 
             {/* Password */}
             <div className="login-form-group">
-              <label className="login-label" htmlFor="password">Password</label>
+              <label className="login-label">Password</label>
               <div className="login-input-wrapper">
+                <Lock className="login-input-icon" size={18} />
                 <input
-                  id="password"
                   type={showPassword ? "text" : "password"}
                   className={`login-input ${colorClass}`}
                   placeholder="Enter your password"
                   required
-                  onChange={(e) => setUser({ ...user, password: e.target.value })}
                   value={user.password}
+                  onChange={(e) => setUser({ ...user, password: e.target.value })}
                   disabled={isLoading}
                 />
-                <Lock size={18} className="login-input-icon" />
-                <button
-                  type="button"
+                <button 
+                  type="button" 
                   className="login-pw-toggle"
                   onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            {/* Forgot */}
             <div className="login-forgot-row">
-              <button
-                type="button"
+              <button 
+                type="button" 
                 className="login-forgot-btn"
                 onClick={() => navigate("/forgot-password")}
-                disabled={isLoading}
               >
                 Forgot Password?
               </button>
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
+            <button 
+              type="submit" 
               className={`login-submit-btn ${colorClass}`}
               disabled={isLoading}
             >
-              {isLoading ? "Logging in…" : `Login as ${type}`}
+              {isLoading ? (
+                <span className="btn-loading">
+                  Logging in...
+                </span>
+              ) : `Login as ${type}`}
             </button>
 
           </form>
 
-          {/* Signup footer */}
           {signupRoute && (
-            <p className="login-footer">
-              Don't have an account?
-              <button
-                className={`login-signup-btn ${colorClass}`}
-                onClick={() => navigate(signupRoute)}
-                disabled={isLoading}
-              >
-                {signupLabel}
-              </button>
-            </p>
+            <div className="login-footer">
+              <p>
+                Don't have an account?
+                <button 
+                  className={`login-signup-btn ${colorClass}`}
+                  onClick={() => navigate(signupRoute)}
+                >
+                  {signupLabel}
+                </button>
+              </p>
+            </div>
           )}
 
         </div>
@@ -236,29 +239,15 @@ const LoginForm = ({ title, type, handleSubmit, setUser, user, error, isLoading 
   );
 };
 
-// Specialized Login Components - defined AFTER the base components
-const CustomerLogin = () => (
-  <Login 
-    type="Customer" 
-    apiUrl={API_ROUTES.CUSTOMER_LOGIN}
-    redirect="/" 
-  />
+// Exports
+export const CustomerLogin = () => (
+  <Login type="Customer" apiUrl={API_ROUTES.CUSTOMER_LOGIN} redirect="/" />
 );
 
-const HomemakerLogin = () => (
-  <Login 
-    type="Homemaker" 
-    apiUrl={API_ROUTES.HOMEMAKER_LOGIN} 
-    redirect="/homemaker-dashboard" 
-  />
+export const HomemakerLogin = () => (
+  <Login type="Homemaker" apiUrl={API_ROUTES.HOMEMAKER_LOGIN} redirect="/homemaker-dashboard" />
 );
 
-const AdminLogin = () => (
-  <Login 
-    type="Admin" 
-    apiUrl={API_ROUTES.ADMIN_LOGIN} 
-    redirect="/admin-dashboard" 
-  />
+export const AdminLogin = () => (
+  <Login type="Admin" apiUrl={API_ROUTES.ADMIN_LOGIN} redirect="/admin-dashboard" />
 );
-
-export { CustomerLogin, HomemakerLogin, AdminLogin };

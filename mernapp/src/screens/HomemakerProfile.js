@@ -5,6 +5,7 @@ import { ArrowLeft, Star, MapPin, ChefHat, Info, ShoppingBag } from "lucide-reac
 import axios from 'axios';
 import FoodCard from "../components/FoodCard";
 import "./HomemakerProfile.css";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const HomemakerProfile = () => {
   const { id } = useParams();
@@ -22,11 +23,11 @@ const HomemakerProfile = () => {
       try {
         setLoading(true);
         // Fetch homemaker info
-        const hmRes = await axios.get(`http://localhost:5000/api/auth/${id}`);
+        const hmRes = await axios.get(`${BASE_URL}/api/auth/${id}`);
         setHomemaker(hmRes.data);
 
         // Fetch homemaker's products
-        const prodRes = await axios.get(`http://localhost:5000/api/products/homemaker/${id}`);
+        const prodRes = await axios.get(`${BASE_URL}/api/products/homemaker/${id}`);
         setProducts(prodRes.data?.products || (Array.isArray(prodRes.data) ? prodRes.data : []));
       } catch (error) {
         console.error('Error fetching chef profile', error);
@@ -40,7 +41,7 @@ const HomemakerProfile = () => {
   const resolveImg = (chef) => {
     if (!chef.profilePic) return null;
     if (chef.profilePic.startsWith("http")) return chef.profilePic;
-    return `http://localhost:5000/images/${chef.profilePic}`;
+    return `${BASE_URL}/images/${chef.profilePic}`;
   };
 
   const FALLBACK_IMG = "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2670&auto=format&fit=crop";

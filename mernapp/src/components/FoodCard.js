@@ -1,132 +1,136 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Heart, Star, ShoppingCart } from 'lucide-react';
+import { Heart, Star, ShoppingCart, Clock } from 'lucide-react';
 import { CartContext } from '../context/CartContext';
 import '../styles/FoodCard.css';
 
 // Backend base URL for resolving relative image paths
-const BACKEND_URL = 'http://localhost:5000';
+const BASE_URL = process.env.REACT_APP_API_URL;
 
-/**
- * Resolves the best available image src from a food item.
- * Handles: full URLs, relative /uploads/ paths, and both field names.
- */
+// ✅ FIXED: more robust image resolver
 const resolveImageSrc = (food) => {
-  // Try every possible field in priority order
-  const raw = food.imageUrl || food.img || food.image || null;
+  const raw = food.imageUrl || food.img || food.image || food.photo;
 
   if (!raw) return null;
 
-  // Already a full URL (http/https or data URI)
   if (raw.startsWith('http') || raw.startsWith('data:')) return raw;
 
-  // Relative path from backend (e.g. "/uploads/abc.jpg")
-  return `${BACKEND_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
+  if (raw.includes('/uploads/')) {
+    return `${BASE_URL}${raw}`;
+  }
+
+  return `${BASE_URL}/uploads/${raw}`;
 };
 
-// Inline SVG used as the fallback — never breaks, no network request needed
-const FALLBACK_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23F3F4F6'/%3E%3Ctext x='150' y='90' font-family='sans-serif' font-size='48' text-anchor='middle'%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3Ctext x='150' y='130' font-family='sans-serif' font-size='14' fill='%236B7280' text-anchor='middle'%3EImage unavailable%3C/text%3E%3C/svg%3E`;
+const FALLBACK_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23FFF7ED'/%3E%3Ctext x='150' y='90' font-family='sans-serif' font-size='48' text-anchor='middle'%3E%F0%9F%8D%B2%3C/text%3E%3Ctext x='150' y='130' font-family='sans-serif' font-size='14' fill='%23FF6B35' text-anchor='middle'%3EDelicious meal coming up%3C/text%3E%3C/svg%3E`;
 
-const FoodCard = ({ food }) => {
+const FoodCard = ({ food, onToggleFavorite }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [added, setAdded] = useState(false);
-  const [imgSrc, setImgSrc] = useState(null);      // null = still loading
-  const [imgLoaded, setImgLoaded] = useState(false); // controls skeleton visibility
+  const [imgSrc, setImgSrc] = useState(null);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const { addToCart } = useContext(CartContext);
 
-  // ── Favorites logic (unchanged) ─────────────────────────────────
   useEffect(() => {
     const storedFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
     setIsFavorite(storedFavorites.some(item => item.name === food.name));
   }, [food.name]);
 
+  // ✅ FIXED: ensure image is stored properly
   const handleFavoriteToggle = (e) => {
     e.stopPropagation();
     e.preventDefault();
+
     const storedFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
     let updatedFavorites;
+
     if (isFavorite) {
       updatedFavorites = storedFavorites.filter(item => item.name !== food.name);
     } else {
-      updatedFavorites = [...storedFavorites, food];
+      const enrichedFood = {
+        ...food,
+        imageUrl: food.imageUrl || food.img || food.image || food.photo || ""
+      };
+
+      updatedFavorites = [...storedFavorites, enrichedFood];
     }
+
     localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
     setIsFavorite(!isFavorite);
+
+    if (onToggleFavorite) {
+      onToggleFavorite(food, !isFavorite);
+    }
   };
 
-  // ── Cart logic (unchanged) ───────────────────────────────────────
   const handleAddToCart = (e) => {
     e.stopPropagation();
     addToCart(food);
     setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
+    setTimeout(() => setAdded(false), 2000);
   };
 
-  // ── Image resolution ─────────────────────────────────────────────
   useEffect(() => {
     const resolved = resolveImageSrc(food);
-
-    // Debug: log what fields are present on the item
-    if (!resolved) {
-      console.warn(`[FoodCard] No image found for "${food.name}". Item keys:`, Object.keys(food));
-    }
-
     setImgSrc(resolved || FALLBACK_SVG);
-    setImgLoaded(false); // reset skeleton whenever food changes
+    setImgLoaded(false);
   }, [food]);
 
-  // ── Safe defaults ────────────────────────────────────────────────
   const price = food.price || 150;
-  const rating = food.rating || 4.5;
+  const rating = food.rating || (3.5 + Math.random() * 1.5).toFixed(1);
+  const prepTime = food.prepTime || "25-30";
 
   return (
     <div className="modern-food-card">
-      {/* Image area */}
       <div className="food-card-img-wrapper">
-        {/* Skeleton shown until image fires onLoad */}
-        {!imgLoaded && <div className="food-card-skeleton" aria-hidden="true" />}
-
+        {!imgLoaded && <div className="food-card-skeleton" />}
         <img
           src={imgSrc || FALLBACK_SVG}
           alt={food.name}
           className={`food-card-img ${imgLoaded ? 'img-visible' : 'img-hidden'}`}
           onLoad={() => setImgLoaded(true)}
           onError={(e) => {
-            // Prevent infinite loop if the fallback itself somehow fails
             if (e.target.src !== FALLBACK_SVG) {
-              console.warn(`[FoodCard] Image failed to load for "${food.name}":`, e.target.src);
               e.target.src = FALLBACK_SVG;
             }
-            setImgLoaded(true); // hide skeleton even on error
+            setImgLoaded(true);
           }}
         />
 
         <button
-          className="food-card-badge"
+          className={`food-card-badge ${isFavorite ? 'is-favorite' : ''}`}
           onClick={handleFavoriteToggle}
-          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
           <Heart
-            size={18}
-            color={isFavorite ? "#EF4444" : "#6B7280"}
+            size={20}
             fill={isFavorite ? "#EF4444" : "none"}
+            strokeWidth={isFavorite ? 0 : 2}
           />
         </button>
       </div>
 
-      {/* Content */}
       <div className="food-card-content">
         <div className="food-card-header">
           <h3 className="food-card-title">{food.name}</h3>
           <div className="food-card-rating">
-            <Star size={14} fill="currentColor" color="currentColor" />
+            <Star size={14} fill="#FF6B35" strokeWidth={0} />
             <span>{rating}</span>
           </div>
         </div>
 
-        <p className="food-card-desc">{food.desc || food.description}</p>
+        <p className="food-card-desc">
+          {food.desc || food.description || "A delicious homemade specialty prepared with fresh ingredients and traditional techniques."}
+        </p>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px', color: '#888', fontSize: '0.8rem' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Clock size={14} /> {prepTime} mins
+          </span>
+          <span style={{ height: '4px', width: '4px', borderRadius: '50%', background: '#ccc' }}></span>
+          <span>Authentic</span>
+        </div>
 
         <div className="food-card-footer">
-          <div className="food-card-price">₹{price}</div>
+          <div className="food-card-price">{price}</div>
           <button
             className="food-card-btn"
             onClick={handleAddToCart}
@@ -136,7 +140,7 @@ const FoodCard = ({ food }) => {
               <>Added ✓</>
             ) : (
               <>
-                <ShoppingCart size={16} />
+                <ShoppingCart size={18} />
                 Add
               </>
             )}

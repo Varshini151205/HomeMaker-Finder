@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 function HomemakerList() {
   const [homemakers, setHomemakers] = useState([]);
@@ -12,7 +13,10 @@ function HomemakerList() {
   });
 
   const fetchHomemakers = async () => {
-    const res = await axios.get('/api/homemakers', { params: filters });
+    const res = await axios.get(
+    `${BASE_URL}/api/auth/all`,
+    { params: filters }
+  );
     setHomemakers(res.data);
   };
 

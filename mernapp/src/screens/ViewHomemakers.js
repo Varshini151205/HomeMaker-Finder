@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { Star, Award, ChefHat, MapPin, Utensils } from "lucide-react";
 import "../screens/ViewHomemakers.css"; // Your existing CSS file
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const ViewHomemakers = () => {
   const [homemakers, setHomemakers] = useState([]);
@@ -35,7 +36,8 @@ const ViewHomemakers = () => {
     const fetchHomemakers = async () => {
       setLoading(true);
       try {
-        const response = await axios.get("http://localhost:5000/api/view-homemakers");
+        const response = await axios.get(`${BASE_URL}/api/homemakers`);
+        
         
         // Sort homemakers by rating (highest first)
         const sortedHomemakers = response.data.sort((a, b) => b.rating - a.rating);

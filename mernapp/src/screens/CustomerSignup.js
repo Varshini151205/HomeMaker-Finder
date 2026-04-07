@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { User, Mail, Lock, Phone, Eye, EyeOff, AlertCircle, ShoppingBag } from "lucide-react";
 import "./Signup.css";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const CustomerSignup = () => {
   const [user, setUser] = useState({ name: "", email: "", password: "", phone: "" });
@@ -57,7 +58,7 @@ const CustomerSignup = () => {
   const handleGoogleSignIn = async (response) => {
     try {
       const { credential } = response;
-      const result = await axios.post("http://localhost:5000/api/customer-auth/google-signup", {
+      const result = await axios.post(`${BASE_URL}/api/customer-auth/google-signup`, {
         token: credential
       });
       
@@ -113,7 +114,7 @@ const CustomerSignup = () => {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/customer-auth/signup", user);
+      await axios.post(`${BASE_URL}/api/customer-auth/signup`, user);
 
       alert("Signup Successful! Please login.");
       navigate("/customer-login");

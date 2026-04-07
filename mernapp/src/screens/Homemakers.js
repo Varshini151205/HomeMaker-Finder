@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const Homemakers = () => {
   const [homemakers, setHomemakers] = useState([]);
@@ -8,7 +9,7 @@ const Homemakers = () => {
   useEffect(() => {
     const fetchHomemakers = async () => {
       try {
-        const response = await axios.get('/api/homemakers'); // Backend API
+        const response = await axios.get(`${BASE_URL}/api/auth/all`);
         setHomemakers(response.data);
       } catch (error) {
         console.error('Error fetching homemakers', error);
@@ -23,7 +24,14 @@ const Homemakers = () => {
       <div className="homemakers-grid">
         {homemakers.map((homemaker) => (
           <div key={homemaker._id} className="homemaker-card">
-            <img src={`/images/${homemaker.profilePic}`} alt={homemaker.name} />
+            <img 
+  src={
+    homemaker.profilePic
+      ? `${BASE_URL}/uploads/${homemaker.profilePic}`
+      : "https://via.placeholder.com/150"
+  }
+  alt={homemaker.name}
+/>
             <h3>{homemaker.name}</h3>
             <p>📍 {homemaker.address}</p>
             <p>⭐ {homemaker.rating || 'No rating yet'}</p>

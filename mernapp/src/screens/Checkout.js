@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-
+const BASE_URL = process.env.REACT_APP_API_URL;
 export default function Checkout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ export default function Checkout() {
   // Function to place an order
   const handlePlaceOrder = async () => {
     try {
-      await axios.post("http://localhost:5000/api/order", {
+      await axios.post(`${BASE_URL}/api/order`, {
         name: formData.name,
         address: formData.address,
         quantity: formData.quantity,
@@ -53,10 +53,11 @@ export default function Checkout() {
     }
 
     try {
-      const { data } = await axios.post("http://localhost:5000/create-order", {
-        amount: totalPrice,
-      });
-
+  const { data } = await axios.post(
+    `${BASE_URL}/api/orders/create-order`,
+    {
+      amount: totalPrice,
+    });
       const options = {
         key: "YOUR_RAZORPAY_KEY_ID", // Replace with your Razorpay key
         amount: data.amount,

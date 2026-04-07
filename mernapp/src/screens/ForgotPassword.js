@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Mail, KeyRound, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 import "./ForgotPassword.css";
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -19,7 +20,7 @@ const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/forgot-password", { email });
+      const response = await axios.post(`${BASE_URL}/api/auth/forgot-password`, { email });
       setSuccessMessage(response.data.message);
     } catch (error) {
       setError(error.response?.data?.message || "Something went wrong.");

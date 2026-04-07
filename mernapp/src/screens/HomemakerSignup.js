@@ -1,8 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock, Phone, MapPin, ChefHat, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { 
+  User, Mail, Lock, Phone, MapPin, ChefHat, 
+  Salad, Award, ImagePlus, Eye, EyeOff, 
+  AlertCircle, ChevronRight, CheckCircle2
+} from "lucide-react";
 import "./Signup.css";
+
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const cuisinesList = ["North Indian", "South Indian", "Chinese", "Italian", "Mexican", "Bengali", "Gujarati"];
 const experienceLevels = ["Less than 1 year", "1-3 years", "3-5 years", "5+ years"];
@@ -20,7 +26,6 @@ const HomemakerSignup = () => {
     experience: "",
     profilePic: null,
     dietaryPreferences: [],
-    bio: "",
   });
 
   const [error, setError] = useState("");
@@ -88,7 +93,7 @@ const HomemakerSignup = () => {
         }
       });
 
-      await axios.post("http://localhost:5000/api/auth/signup", formData, {
+      await axios.post(`${BASE_URL}/api/auth/signup`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -102,61 +107,66 @@ const HomemakerSignup = () => {
   return (
     <div className="premium-signup-wrapper">
       
-      {/* Left Panel Image Banner */}
+      {/* Left Panel: Branding & Motivation */}
       <div className="premium-signup-left">
         <img 
           src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2670&auto=format&fit=crop" 
-          alt="Cooking environment" 
+          alt="Home cooking" 
           className="premium-signup-image"
         />
         <div className="premium-signup-overlay"></div>
         <div className="premium-signup-left-content">
-          <h1>Turn Your Cooking Into Income.</h1>
-          <p>Join thousands of local homemakers selling authentic homemade meals to happy customers every day.</p>
+          <h1>Turn Your Passion into Income.</h1>
+          <p>Join thousands of homemakers who share their love for cooking with the world. Start your journey as a home chef today!</p>
         </div>
       </div>
 
-      {/* Right Panel Form Container */}
+      {/* Right Panel: Signup Form */}
       <div className="premium-signup-right">
         <div className="premium-signup-card">
           
           <div className="premium-signup-header">
             <div className="premium-signup-icon">
-              <ChefHat size={28} />
+              <ChefHat size={32} />
             </div>
-            <h2>Become a Homemaker</h2>
-            <p>Start selling your homemade food today</p>
+            <h2>Homemaker Signup</h2>
+            <p>Create your chef profile and start cooking</p>
           </div>
 
           {error && (
             <div className="premium-error-msg">
-              <AlertCircle size={18} /> {error}
+              <AlertCircle size={20} />
+              <span>{error}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
             
-            {/* SECTION 1: Personal Info */}
+            {/* Section 1: Personal Info */}
             <div className="premium-form-section">
-              <div className="premium-form-section-title">Personal Information</div>
+              <h3 className="premium-form-section-title">
+                <User size={18} /> Personal Information
+              </h3>
               
               <div className="premium-input-group">
+                <label className="premium-label">Full Name</label>
                 <input 
                   type="text" 
-                  className="premium-input" 
-                  placeholder="Full Name" 
+                  placeholder="Enter your full name" 
+                  className="premium-input"
                   required 
                   onChange={(e) => setUser({ ...user, name: e.target.value })} 
                   value={user.name} 
                 />
                 <User size={20} className="premium-input-icon" />
               </div>
-              
+
               <div className="premium-input-group">
+                <label className="premium-label">Email Address</label>
                 <input 
                   type="email" 
-                  className="premium-input" 
-                  placeholder="Email Address" 
+                  placeholder="name@example.com" 
+                  className="premium-input"
                   required 
                   onChange={(e) => setUser({ ...user, email: e.target.value })} 
                   value={user.email} 
@@ -165,30 +175,34 @@ const HomemakerSignup = () => {
               </div>
 
               <div className="premium-input-group">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className={`premium-input ${passwordError ? "premium-input-error" : ""}`}
-                  placeholder="Password"
-                  required
-                  onChange={handlePasswordChange}
-                  value={user.password}
-                />
-                <Lock size={20} className="premium-input-icon" />
-                <button 
-                  type="button"
-                  style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer' }}
-                  onClick={togglePasswordVisibility}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+                <label className="premium-label">Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a strong password"
+                    className={`premium-input ${passwordError ? "premium-input-error" : ""}`}
+                    required
+                    onChange={handlePasswordChange}
+                    value={user.password}
+                  />
+                  <Lock size={20} className="premium-input-icon" />
+                  <button 
+                    type="button" 
+                    className="premium-password-toggle"
+                    onClick={togglePasswordVisibility}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
                 {passwordError && <span className="premium-error-text">{passwordError}</span>}
               </div>
 
               <div className="premium-input-group">
+                <label className="premium-label">Phone Number</label>
                 <input 
                   type="tel" 
+                  placeholder="10-digit mobile number" 
                   className={`premium-input ${phoneError ? "premium-input-error" : ""}`}
-                  placeholder="Phone Number" 
                   required 
                   onChange={handlePhoneInput} 
                   value={user.phone} 
@@ -198,10 +212,11 @@ const HomemakerSignup = () => {
               </div>
 
               <div className="premium-input-group">
+                <label className="premium-label">Operating Address</label>
                 <input 
                   type="text" 
-                  className="premium-input" 
-                  placeholder="Full Delivery Address" 
+                  placeholder="Complete street address" 
+                  className="premium-input"
                   onChange={(e) => setUser({ ...user, address: e.target.value })} 
                   value={user.address} 
                   required 
@@ -210,14 +225,16 @@ const HomemakerSignup = () => {
               </div>
             </div>
 
-            {/* SECTION 2: Cooking Preferences */}
+            {/* Section 2: Cooking Expertise */}
             <div className="premium-form-section">
-              <div className="premium-form-section-title">Cooking Specialities</div>
+              <h3 className="premium-form-section-title">
+                <ChefHat size={18} /> Cooking Expertise
+              </h3>
               
-              <p style={{ fontSize: '0.9rem', color: '#4B5563', marginBottom: '8px' }}>Dietary Profile:</p>
+              <label className="premium-label">Dietary Specializations</label>
               <div className="premium-checkbox-grid">
                 {dietaryOptions.map((option) => (
-                  <label className="premium-checkbox-label" key={option}>
+                  <label key={option} className={`premium-checkbox-label ${user.dietaryPreferences.includes(option) ? 'checked' : ''}`}>
                     <input
                       type="checkbox"
                       value={option}
@@ -236,10 +253,10 @@ const HomemakerSignup = () => {
                 ))}
               </div>
 
-              <p style={{ fontSize: '0.9rem', color: '#4B5563', marginBottom: '8px', marginTop: '1rem' }}>Cuisines You Cook:</p>
+              <label className="premium-label">Cuisines You Master</label>
               <div className="premium-checkbox-grid">
                 {cuisinesList.map((cuisine) => (
-                  <label className="premium-checkbox-label" key={cuisine}>
+                  <label key={cuisine} className={`premium-checkbox-label ${user.cuisines.includes(cuisine) ? 'checked' : ''}`}>
                     <input
                       type="checkbox"
                       value={cuisine}
@@ -257,71 +274,68 @@ const HomemakerSignup = () => {
                   </label>
                 ))}
               </div>
-              
-              <div className="premium-input-group mt-3" style={{ marginTop: '1rem' }}>
+
+              <div className="premium-input-group" style={{ marginTop: '1rem' }}>
+                <label className="premium-label">Custom Cuisine (Optional)</label>
                 <input
                   type="text"
+                  placeholder="e.g. Lebanese, Thai..."
                   className="premium-input"
-                  style={{ paddingLeft: '14px' }}
-                  placeholder="Other Custom Cuisine? (Optional)"
                   value={user.customCuisine}
                   onChange={(e) => setUser({ ...user, customCuisine: e.target.value })}
                 />
+                <ChefHat size={20} className="premium-input-icon" />
               </div>
 
-              <div className="premium-input-group mt-3" style={{ marginTop: '1rem' }}>
+              <div className="premium-input-group">
+                <label className="premium-label">Experience Level</label>
                 <select
                   className="premium-input"
-                  style={{ paddingLeft: '14px' }}
                   value={user.experience}
                   onChange={(e) => setUser({ ...user, experience: e.target.value })}
                   required
                 >
-                  <option value="">Select Professional Experience</option>
+                  <option value="">Select Experience Level</option>
                   {experienceLevels.map((level) => (
                     <option key={level} value={level}>
                       {level}
                     </option>
                   ))}
                 </select>
+                <Award size={20} className="premium-input-icon" />
               </div>
+            </div>
 
-              <div className="premium-input-group mt-3" style={{ marginTop: '1rem' }}>
-                <textarea
-                  className="premium-input"
-                  style={{ paddingLeft: '14px', height: '100px', paddingTop: '10px' }}
-                  placeholder="About Me / Short Bio (Describe your cooking passion...)"
-                  value={user.bio}
-                  onChange={(e) => setUser({ ...user, bio: e.target.value })}
+            {/* Profile Pic Upload */}
+            <div className="premium-form-section">
+              <h3 className="premium-form-section-title">
+                <ImagePlus size={18} /> Media & Finalization
+              </h3>
+              <label className="premium-label">Upload Profile Picture</label>
+              <div className="premium-file-input-wrapper">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="premium-file-input"
+                  onChange={(e) => setUser({ ...user, profilePic: e.target.files[0] })}
+                  required
                 />
               </div>
-            </div>
 
-            {/* SECTION 3: Profile Finalization */}
-            <div className="premium-form-section">
-              <div className="premium-form-section-title">Profile Picture</div>
-              <input
-                type="file"
-                accept="image/*"
-                className="premium-input"
-                style={{ padding: '9px 14px' }}
-                onChange={(e) => setUser({ ...user, profilePic: e.target.files[0] })}
-              />
-            </div>
-
-            <div className="premium-alert-note">
-              <strong>⚠️ Important Policy:</strong> Homemakers are structured to cook <strong>only one</strong> designated food item per day to ensure pristine hygiene standards and maximum quality.
+              <div className="premium-alert-note">
+                <strong><AlertCircle size={16} inline /> Important:</strong>
+                Homemakers must cook <strong>only one</strong> food item per day to ensure hygiene and maintain premium quality.
+              </div>
             </div>
 
             <button type="submit" className="premium-submit-btn">
-              Create Homemaker Account
+              Create Chef Account <ChevronRight size={20} style={{ marginLeft: '8px', verticalAlign: 'middle' }} />
             </button>
           </form>
 
-          <div className="premium-form-footer">
-            Already have a Homemaker account? <Link to="/homemaker-login" className="premium-link">Login here</Link>
-          </div>
-
+          <footer className="premium-form-footer">
+            Already have a chef account? <Link to="/homemaker-login" className="premium-link">Login here</Link>
+          </footer>
         </div>
       </div>
     </div>

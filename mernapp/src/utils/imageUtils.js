@@ -3,8 +3,8 @@
  * Handles environment-based base URLs and fallback SVGs for broken images.
  */
 
-// The backend base URL from environment variables, or default to localhost:5000
-const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// The backend base URL from environment variables
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 /**
  * Bulletproof SVG fallback image - "Image Unavailable" placeholder.

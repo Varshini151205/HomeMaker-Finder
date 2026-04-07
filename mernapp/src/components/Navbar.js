@@ -23,13 +23,25 @@ const Navbar = () => {
     };
 
     checkAuth();
+    // Fires when another tab changes localStorage
     window.addEventListener("storage", checkAuth);
-    return () => window.removeEventListener("storage", checkAuth);
+    // Fires within the same tab (dispatched by handleLogout)
+    window.addEventListener("localAuthChange", checkAuth);
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+      window.removeEventListener("localAuthChange", checkAuth);
+    };
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("homemakerId");
+    localStorage.removeItem("customerId");
     setIsAuthenticated(false);
+    setUserRole("");
+    // Notify same-tab listeners
+    window.dispatchEvent(new Event("localAuthChange"));
     navigate("/login");
   };
 
@@ -193,12 +205,49 @@ const Navbar = () => {
 
       {/* MOBILE MENU OVERLAY */}
       {isMobileMenuOpen && (
-        <div className="mobile-nav-overlay d-md-none">
-          <Link to="/" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
-          <Link to="/menu" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>Menu</Link>
-          <Link to="/favorites" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>Favorites</Link>
-          {isAuthenticated && (
-            <Link to="/orders" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>My Orders</Link>
+        <div className="mobile-nav-overlay">
+          <Link
+            to="/"
+            className={`mobile-nav-link ${location.pathname === '/' ? 'active' : ''}`}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >Home</Link>
+          <Link
+            to="/menu"
+            className={`mobile-nav-link ${location.pathname === '/menu' ? 'active' : ''}`}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >Menu</Link>
+          <Link
+            to="/favorites"
+            className={`mobile-nav-link ${location.pathname === '/favorites' ? 'active' : ''}`}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >Favorites</Link>
+          <Link
+            to="/chefs"
+            className={`mobile-nav-link ${location.pathname === '/chefs' ? 'active' : ''}`}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >Chefs</Link>
+
+          {/* Role-based links — mirrors desktop nav exactly */}
+          {isAuthenticated && userRole === "Customer" && (
+            <Link
+              to="/orders"
+              className={`mobile-nav-link ${location.pathname === '/orders' ? 'active' : ''}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >My Orders</Link>
+          )}
+          {isAuthenticated && userRole === "Homemaker" && (
+            <Link
+              to="/homemaker-dashboard"
+              className={`mobile-nav-link ${location.pathname === '/homemaker-dashboard' ? 'active' : ''}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >My Kitchen</Link>
+          )}
+          {isAuthenticated && userRole === "Admin" && (
+            <Link
+              to="/admin-dashboard"
+              className={`mobile-nav-link ${location.pathname === '/admin-dashboard' ? 'active' : ''}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >Admin Panel</Link>
           )}
         </div>
       )}

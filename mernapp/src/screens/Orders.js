@@ -1,393 +1,320 @@
 import React, { useState, useEffect } from "react";
-// Remove the Navbar import since it's already in your layout
-// import Navbar from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
+import Footer from "../components/Footer";
 import axios from "axios";
-import { Calendar, Package2, CreditCard, TrendingUp, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
+import { 
+  Calendar, 
+  Package2, 
+  CreditCard, 
+  TrendingUp, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  AlertCircle, 
+  ShoppingBag, 
+  ArrowRight,
+  HelpCircle,
+  RotateCcw,
+  MapPin
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import "./Orders.css";
+
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
-
-  // Enhanced food-themed colors
-  const colors = {
-    primary: "#FF5A00", // Orange like Swiggy
-    secondary: "#2B1B17", // Dark brown
-    accent: "#60B246", // Green for success states
-    error: "#E23744", // Red for error states
-    light: "#FFF9F5", // Warmer light background with a hint of orange
-    cardBg: "#FFFFFF", // Card background
-    border: "#FFE8D6", // Warmer border color
-    text: "#3D3D3D", // Main text
-    textLight: "#7E808C", // Secondary text
-    backgroundGradient: "linear-gradient(to bottom, #FFF3E0, #FFF9F5)" // Warm food-themed gradient
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch orders from API
-    setIsLoading(true);
-    axios.get("http://localhost:5000/api/orders")
-      .then(response => {
+    const fetchOrders = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch from Backend (Cloud API)
+        const response = await axios.get(`${BASE_URL}/api/orders`);
         setOrders(response.data);
-        setIsLoading(false);
-      })
-      .catch(error => {
+        
+      } catch (error) {
         console.error("Error fetching orders:", error);
+      } finally {
         setIsLoading(false);
-      });
+      }
+    };
+    fetchOrders();
   }, []);
 
-  // Status badge style and icon
   const getStatusDetails = (status) => {
-    switch(status) {
+    switch(status?.toLowerCase()) {
+      case "placed":
+        return { icon: <Package2 size={14} />, class: "pending", text: "Order Placed" };
       case "delivered":
-        return {
-          icon: <CheckCircle size={16} />,
-          color: colors.accent,
-          text: "Delivered"
-        };
+        return { icon: <CheckCircle size={14} />, class: "delivered", text: "Delivered" };
       case "cancelled":
-        return {
-          icon: <XCircle size={16} />,
-          color: colors.error,
-          text: "Cancelled"
-        };
+        return { icon: <XCircle size={14} />, class: "cancelled", text: "Cancelled" };
       case "pending":
-        return {
-          icon: <Clock size={16} />,
-          color: "#F5A623", // Amber
-          text: "Pending"
-        };
+        return { icon: <Clock size={14} />, class: "pending", text: "Pending" };
+      case "preparing":
+        return { icon: <TrendingUp size={14} />, class: "preparing", text: "Preparing" };
       default:
-        return {
-          icon: <AlertCircle size={16} />,
-          color: colors.textLight,
-          text: status
-        };
+        return { icon: <AlertCircle size={14} />, class: "default", text: status || "Unknown" };
     }
   };
 
-  // Payment method icon
   const getPaymentIcon = (method) => {
     switch(method?.toLowerCase()) {
-      case "credit card":
-        return <CreditCard size={18} />;
-      case "debit card":
-        return <CreditCard size={18} />;
-      case "upi":
-        return <TrendingUp size={18} />;
-      case "cash":
-        return <i className="fas fa-money-bill-wave" style={{ fontSize: "18px" }}></i>;
-      default:
-        return <CreditCard size={18} />;
+      case "upi": return <TrendingUp size={18} />;
+      case "cash": return <ShoppingBag size={18} />;
+      default: return <CreditCard size={18} />;
     }
   };
 
-  const filteredOrders = filter === "all" ? orders : orders.filter(order => order.status === filter);
+  const filteredOrders = filter === "all" ? orders : orders.filter(order => order.status?.toLowerCase() === filter);
 
   return (
-    <div style={{ 
-      background: colors.backgroundGradient, 
-      minHeight: "100vh",
-      paddingTop: "1rem", // Add some top padding to separate from navbar
-    }}>
-      {/* Removed the Navbar component from here */}
-      
-      <div className="container py-4">
-        <div className="d-flex align-items-center justify-content-between mb-4">
-          <h2 style={{ color: colors.secondary, fontWeight: "700" }}>My Orders</h2>
+    <div className="orders-page">
+      <div className="orders-container">
+        
+        {/* Page Header */}
+        <header className="orders-header">
+          <div className="header-left">
+            <motion.h1 
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+            >
+              My Orders
+            </motion.h1>
+            <motion.p
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
+              Track and manage your delicious meals
+            </motion.p>
+          </div>
           
-          {/* Filter Orders */}
-          <div className="d-flex align-items-center">
-            <label className="me-2" style={{ color: colors.textLight, marginBottom: "0" }}>Filter:</label>
+          <motion.div 
+            className="filter-wrapper"
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <label htmlFor="order-filter">Filter:</label>
             <select 
-              className="form-select" 
+              id="order-filter"
+              className="orders-filter-select" 
+              value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              style={{ 
-                border: `1px solid ${colors.border}`,
-                borderRadius: "8px",
-                padding: "8px 16px",
-                boxShadow: "none",
-                fontWeight: "500"
-              }}
             >
               <option value="all">All Orders</option>
+              <option value="placed">Placed</option>
               <option value="pending">Pending</option>
+              <option value="preparing">Preparing</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
-          </div>
-        </div>
+          </motion.div>
+        </header>
 
+        {/* Content Body */}
         {isLoading ? (
           <div className="d-flex justify-content-center py-5">
-            <div className="spinner-border" role="status" style={{ color: colors.primary }}>
-              <span className="visually-hidden">Loading...</span>
-            </div>
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+              className="spinner-border" 
+              style={{ color: "#FF6B35" }}
+            />
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div className="text-center py-5" style={{ color: colors.textLight }}>
-            <Package2 size={64} style={{ color: colors.textLight, opacity: 0.5, marginBottom: "16px" }} />
-            <h4>No orders found</h4>
-            <p>You haven't placed any orders yet or no orders match your filter.</p>
-          </div>
+          <motion.div 
+             initial={{ scale: 0.9, opacity: 0 }}
+             animate={{ scale: 1, opacity: 1 }}
+             className="orders-empty-state"
+          >
+            <div className="empty-illustration">
+              <ShoppingBag size={48} />
+            </div>
+            <h2>No orders yet!</h2>
+            <p>Looks like you haven't placed any orders. Browse our menu to find something delicious.</p>
+            <button className="browse-menu-btn" onClick={() => navigate("/menu")}>
+              Browse Menu <ArrowRight size={18} style={{ marginLeft: '8px', verticalAlign: 'middle' }} />
+            </button>
+          </motion.div>
         ) : (
-          <div className="row">
-            {filteredOrders.map((order) => {
-              const statusDetails = getStatusDetails(order.status);
-              return (
-                <div className="col-12 mb-4" key={order.id}>
-                  <div 
-                    className="card border-0 shadow-sm"
-                    style={{ 
-                      borderRadius: "16px", 
-                      backgroundColor: colors.cardBg,
-                      overflow: "hidden"
-                    }}
+          <div className="orders-list">
+            <AnimatePresence mode='popLayout'>
+              {filteredOrders.map((order, idx) => {
+                const status = getStatusDetails(order.status);
+                const isLocalOrder = Array.isArray(order.items);
+                
+                // Calculate display totals
+                const subtotal = isLocalOrder 
+                  ? order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+                  : (order.price * order.quantity);
+                
+                const totalAmount = isLocalOrder ? order.total : (subtotal + (order.deliveryFee || 40) - (order.discount || 0));
+                
+                const displayDate = order.createdAt 
+                  ? new Date(order.createdAt).toLocaleString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: true
+                    })
+                  : (order.date || "Just now");
+
+                return (
+                  <motion.div 
+                    layout
+                    key={order._id || idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="order-card"
                   >
-                    {/* Order Header */}
-                    <div className="card-header d-flex justify-content-between align-items-center" 
-                      style={{ 
-                        backgroundColor: colors.light, 
-                        borderBottom: `1px solid ${colors.border}`,
-                        padding: "16px 20px"
-                      }}
-                    >
-                      <div className="d-flex align-items-center">
-                        <Calendar size={18} style={{ color: colors.textLight, marginRight: "8px" }} />
-                        <span style={{ color: colors.textLight, fontSize: "14px" }}>
-                          {order.date || "May 4, 2025"}
-                        </span>
-                      </div>
-                      <div className="d-flex align-items-center">
-                        <span style={{ fontSize: "14px", marginRight: "8px", color: colors.textLight }}>
-                          Order #{order.id}
-                        </span>
-                        <div 
-                          className="d-flex align-items-center" 
-                          style={{ 
-                            backgroundColor: statusDetails.color + "20", // 20% opacity
-                            color: statusDetails.color,
-                            padding: "4px 12px",
-                            borderRadius: "50px",
-                            fontWeight: "500",
-                            fontSize: "13px"
-                          }}
-                        >
-                          <span style={{ marginRight: "4px" }}>{statusDetails.icon}</span>
-                          {statusDetails.text}
+                    <div className="order-card-header">
+                      <div className="order-meta">
+                        <div className="order-date">
+                          <Calendar size={14} />
+                          {displayDate}
                         </div>
+                        <span className="order-id">Order ID: #{order._id?.slice(-8).toUpperCase() || 'N/A'}</span>
+                      </div>
+                      <div className={`status-badge ${status.class}`}>
+                        {status.icon}
+                        {status.text}
                       </div>
                     </div>
-                    
-                    {/* Order Content */}
-                    <div className="card-body" style={{ padding: "20px" }}>
-                      <div className="row">
-                        {/* Order Items */}
-                        <div className="col-md-8">
-                          <div className="d-flex mb-3">
-                            <div 
-                              style={{ 
-                                width: "60px", 
-                                height: "60px", 
-                                backgroundColor: "#F0F0F0",
-                                borderRadius: "8px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                marginRight: "16px"
-                              }}
-                            >
-                              <img 
-                                src={order.image || "/api/placeholder/60/60"} 
-                                alt={order.item}
-                                style={{ 
-                                  maxWidth: "100%", 
-                                  maxHeight: "100%", 
-                                  borderRadius: "8px",
-                                  objectFit: "cover"
-                                }}
-                                onError={(e) => {
-                                  e.target.src = "/api/placeholder/60/60";
-                                }}
-                              />
-                            </div>
-                            <div>
-                              <h5 style={{ 
-                                color: colors.text, 
-                                marginBottom: "4px", 
-                                fontWeight: "600",
-                                fontSize: "16px"
-                              }}>
-                                {order.item}
-                              </h5>
-                              <div className="d-flex">
-                                <span style={{ color: colors.textLight, fontSize: "14px", marginRight: "16px" }}>
-                                  Qty: {order.quantity}
-                                </span>
-                                <span style={{ 
-                                  color: colors.primary, 
-                                  fontWeight: "600", 
-                                  fontSize: "14px" 
-                                }}>
-                                  ₹{order.price}
-                                </span>
+
+                    <div className="order-card-body">
+                      <div className="order-main-content">
+                        
+                        {/* Main Info - Support for multiple items */}
+                        <div className="order-details-col">
+                          <div className="order-items-list">
+                            {isLocalOrder ? (
+                              order.items.map((item, itemIdx) => (
+                                <div key={item._id || itemIdx} className="order-item-row mini">
+                                  <div className="item-thumb-wrapper small">
+                                    <img 
+                                      src={item.imageUrl || item.img || item.image || "https://via.placeholder.com/64?text=Food"} 
+                                      alt={item.name} 
+                                      className="item-thumb"
+                                      onError={(e) => e.target.src = "https://via.placeholder.com/64?text=Food"}
+                                    />
+                                  </div>
+                                  <div className="item-info">
+                                    <h3>{item.name}</h3>
+                                    <div className="item-meta">
+                                      <span>Quantity: {item.quantity}</span>
+                                      <span className="item-price">₹{item.price} each</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="order-item-row">
+                                <div className="item-thumb-wrapper">
+                                  <img 
+                                    src={order.profilePic || order.image || "https://via.placeholder.com/64?text=Food"} 
+                                    alt={order.item} 
+                                    className="item-thumb"
+                                    onError={(e) => e.target.src = "https://via.placeholder.com/64?text=Food"}
+                                  />
+                                </div>
+                                <div className="item-info">
+                                  <h3>{order.item}</h3>
+                                  <div className="item-meta">
+                                    <span>Quantity: {order.quantity}</span>
+                                    <span className="item-price">₹{order.price} each</span>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
-                          
-                          {/* Delivery Address if available */}
-                          {order.address && (
-                            <div style={{ 
-                              fontSize: "14px", 
-                              color: colors.textLight, 
-                              marginTop: "12px",
-                              borderTop: `1px dashed ${colors.border}`,
-                              paddingTop: "12px"
-                            }}>
-                              <div style={{ fontWeight: "500", marginBottom: "4px", color: colors.text }}>
-                                Delivery Address
-                              </div>
-                              {order.address}
+
+                          {(order.address || order.userDetails?.address) && (
+                            <div className="delivery-address-section">
+                              <h4>Delivery Address</h4>
+                              <p>
+                                <MapPin size={12} style={{ marginRight: '4px' }} /> 
+                                {order.userDetails?.address || order.address}
+                              </p>
+                              {order.userDetails?.instructions && (
+                                <p className="cooking-instructions-text">
+                                  <strong>Note:</strong> {order.userDetails.instructions}
+                                </p>
+                              )}
                             </div>
                           )}
                         </div>
-                        
-                        {/* Order Summary */}
-                        <div className="col-md-4">
-                          <div style={{ 
-                            backgroundColor: colors.light, 
-                            borderRadius: "12px",
-                            padding: "16px"
-                          }}>
-                            <h6 style={{ 
-                              color: colors.text, 
-                              fontWeight: "600", 
-                              marginBottom: "12px" 
-                            }}>
-                              Order Summary
-                            </h6>
-                            
-                            <div className="d-flex justify-content-between mb-2" style={{ fontSize: "14px" }}>
-                              <span style={{ color: colors.textLight }}>Item Total</span>
-                              <span style={{ color: colors.text }}>₹{order.price * order.quantity}</span>
+
+                        {/* Summary Info */}
+                        <div className="order-summary-col">
+                          <div className="order-summary-panel">
+                            <div className="summary-row">
+                              <span>Subtotal</span>
+                              <span>₹{subtotal.toFixed(0)}</span>
                             </div>
-                            
-                            <div className="d-flex justify-content-between mb-2" style={{ fontSize: "14px" }}>
-                              <span style={{ color: colors.textLight }}>Delivery Fee</span>
-                              <span style={{ color: colors.text }}>₹{order.deliveryFee || 40}</span>
+                            <div className="summary-row">
+                              <span>Delivery Fee</span>
+                              <span>₹{order.deliveryFee || (isLocalOrder ? 40 : 40)}</span>
                             </div>
-                            
-                            {order.discount && (
-                              <div className="d-flex justify-content-between mb-2" style={{ fontSize: "14px" }}>
-                                <span style={{ color: colors.accent }}>Discount</span>
-                                <span style={{ color: colors.accent }}>-₹{order.discount}</span>
+                            {(order.discount > 0) && (
+                              <div className="summary-row" style={{ color: '#10B981' }}>
+                                <span>Discount</span>
+                                <span>-₹{order.discount}</span>
                               </div>
                             )}
-                            
-                            <div style={{ 
-                              borderTop: `1px dashed ${colors.border}`, 
-                              margin: "8px 0", 
-                              paddingTop: "8px" 
-                            }}>
-                              <div className="d-flex justify-content-between" style={{ fontWeight: "600" }}>
-                                <span>Total</span>
-                                <span>₹{(order.price * order.quantity) + (order.deliveryFee || 40) - (order.discount || 0)}</span>
-                              </div>
+                            <div className="summary-row total">
+                              <span>Total Amount</span>
+                              <span>₹{totalAmount.toFixed(0)}</span>
                             </div>
-                          </div>
-                          
-                          {/* Payment Method */}
-                          <div style={{ 
-                            marginTop: "16px", 
-                            backgroundColor: colors.light,
-                            borderRadius: "12px",
-                            padding: "16px"
-                          }}>
-                            <h6 style={{ 
-                              color: colors.text, 
-                              fontWeight: "600", 
-                              marginBottom: "12px" 
-                            }}>
-                              Payment Details
-                            </h6>
-                            
-                            <div className="d-flex align-items-center" style={{ marginBottom: "8px" }}>
-                              <div style={{ 
-                                width: "40px", 
-                                height: "40px", 
-                                backgroundColor: colors.primary + "15", // 15% opacity
-                                borderRadius: "8px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                marginRight: "12px",
-                                color: colors.primary
-                              }}>
-                                {getPaymentIcon(order.paymentMethod)}
+
+                            <div className="payment-method-row">
+                              <div className="payment-icon-box">
+                                {getPaymentIcon(order.userDetails?.paymentMethod || order.paymentMethod)}
                               </div>
-                              <div>
-                                <div style={{ fontWeight: "500", fontSize: "14px" }}>
-                                  {order.paymentMethod || "Online Payment"}
-                                </div>
-                                <div style={{ color: colors.textLight, fontSize: "12px" }}>
-                                  {order.paymentStatus === "paid" ? 
-                                    "Payment Successful" : 
-                                    order.paymentStatus || "Pending"}
-                                </div>
+                              <div className="payment-text">
+                                <span>Payment Mode</span>
+                                <strong style={{ textTransform: 'capitalize' }}>
+                                  {order.userDetails?.paymentMethod || order.paymentMethod || "Online"}
+                                </strong>
                               </div>
                             </div>
                           </div>
                         </div>
+
                       </div>
                     </div>
-                    
-                    {/* Order Footer with Actions */}
-                    {order.status === "delivered" && (
-                      <div className="card-footer d-flex justify-content-end" 
-                        style={{ 
-                          backgroundColor: colors.cardBg, 
-                          borderTop: `1px solid ${colors.border}`,
-                          padding: "12px 20px"  
-                        }}
+
+                    <div className="order-card-footer">
+                      <button className="btn-order-action help">
+                        <HelpCircle size={16} /> Help
+                      </button>
+                      <button 
+                        className="btn-order-action reorder"
+                        onClick={() => navigate("/menu")}
                       >
-                        <button 
-                          className="btn" 
-                          style={{ 
-                            backgroundColor: "transparent", 
-                            border: `1px solid ${colors.border}`,
-                            color: colors.text,
-                            marginRight: "10px",
-                            borderRadius: "8px",
-                            fontWeight: "500",
-                            padding: "8px 16px"
-                          }}
-                        >
-                          Help
-                        </button>
-                        <button 
-                          className="btn" 
-                          style={{ 
-                            backgroundColor: colors.primary, 
-                            border: "none",
-                            color: "white",
-                            borderRadius: "8px",
-                            fontWeight: "500",
-                            padding: "8px 16px"
-                          }}
-                        >
-                          Reorder
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                        <RotateCcw size={16} /> Reorder
+                      </button>
+                    </div>
+
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         )}
+
       </div>
-      
+      <Footer />
     </div>
   );
 }

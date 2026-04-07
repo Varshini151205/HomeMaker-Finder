@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../styles/Signup.css"; // Import CSS
-
+const BASE_URL = process.env.REACT_APP_API_URL;
 export default function Signup() {
   const [user, setUser] = useState({
     name: "",
@@ -35,7 +35,7 @@ export default function Signup() {
     try {
       setLoading(true); // Show loading indicator
       // Send the user data for signup
-      await axios.post("http://localhost:5000/api/auth/signup", {
+      await axios.post(`${BASE_URL}/api/auth/signup`, {
         name: user.name,
         email: user.email,
         password: user.password,

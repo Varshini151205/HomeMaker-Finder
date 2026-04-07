@@ -1,15 +1,21 @@
 /* src/screens/ChefList.js */
 import React, { useLayoutEffect, useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Star, MapPin, Search, ChefHat, Info } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Star, MapPin, Search, ChefHat, Info, ChevronRight, Award } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import "./ChefList.css";
+
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const ChefList = () => {
     const [chefs, setChefs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [activeFilter, setActiveFilter] = useState("All");
     const navigate = useNavigate();
+
+    const filters = ["All", "South Indian", "North Indian", "Continental", "Desserts", "Healthy"];
 
     useLayoutEffect(() => {
         window.scrollTo(0, 0);
@@ -19,8 +25,7 @@ const ChefList = () => {
         const fetchChefs = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get("http://localhost:5000/api/view-homemakers");
-                // The current viewHomemakersRoute.js returns the array directly
+                const response = await axios.get(`${BASE_URL}/api/view-homemakers`);
                 setChefs(response.data || []);
             } catch (error) {
                 console.error("Error fetching chefs:", error);
@@ -29,100 +34,158 @@ const ChefList = () => {
                 setLoading(false);
             }
         };
-
         fetchChefs();
     }, []);
 
-    const filteredChefs = chefs.filter(chef => 
-        chef.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        chef.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (chef.cuisines && chef.cuisines.some(c => c.toLowerCase().includes(searchQuery.toLowerCase())))
-    );
+    const filteredChefs = chefs.filter(chef => {
+        const matchesSearch = chef.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            chef.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (chef.cuisines && chef.cuisines.some(c => c.toLowerCase().includes(searchQuery.toLowerCase())));
+        
+        const matchesFilter = activeFilter === "All" || 
+            (chef.cuisines && chef.cuisines.some(c => c.toLowerCase().includes(activeFilter.toLowerCase())));
+            
+        return matchesSearch && matchesFilter;
+    });
 
     const resolveImg = (chef) => {
         if (!chef.profilePic) return null;
         if (chef.profilePic.startsWith("http")) return chef.profilePic;
-        return `http://localhost:5000/images/${chef.profilePic}`;
+        return `${BASE_URL}/images/${chef.profilePic}`;
     };
 
     const FALLBACK_IMG = "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2670&auto=format&fit=crop";
 
     return (
-        <div className="chef-list-page">
-            <div className="chef-hero">
-                <div className="chef-hero-content">
-                    <h1>Meet Our Chefs ❤️</h1>
-                    <p>Discover the talented homemakers behind your favorite delicious homemade meals.</p>
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="chef-list-page"
+        >
+            <section className="chef-hero">
+                <motion.div 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="chef-hero-content"
+                >
+                    <h1>Meet Our Chefs</h1>
+                    <p>Discover talented home chefs preparing authentic, hygienic, and heartwarming meals delivered right to your doorstep.</p>
+                </motion.div>
+            </section>
+
+            <div className="chef-controls">
+                <div className="chef-search-container">
+                    <Search className="chef-search-icon" size={20} />
+                    <input 
+                        type="text" 
+                        placeholder="Search by name, cuisine, or area..." 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="chef-search-input"
+                    />
+                </div>
+
+                <div className="chef-filters">
+                    {filters.map(filter => (
+                        <button 
+                            key={filter}
+                            className={`filter-chip ${activeFilter === filter ? 'active' : ''}`}
+                            onClick={() => setActiveFilter(filter)}
+                        >
+                            {filter}
+                        </button>
+                    ))}
                 </div>
             </div>
 
             <div className="chef-grid-container">
-                {/* Search Bar */}
-                <div className="chef-search-bar mb-5" style={{ maxWidth: '600px', margin: '0 auto 3rem', position: 'relative' }}>
-                    <Search className="search-icon" size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }} />
-                    <input 
-                        type="text" 
-                        placeholder="Search by chef name, cuisine, or location..." 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        style={{ width: '100%', padding: '14px 14px 14px 48px', borderRadius: '14px', border: '1px solid #E5E7EB', outline: 'none', fontSize: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', backgroundColor: 'white' }}
-                    />
-                </div>
-
                 {loading ? (
                     <div className="text-center py-5">
-                       <ChefHat size={48} className="animate-bounce" style={{ color: '#F97316', margin: '0 auto 1rem' }} />
-                       <p>Finding our best chefs...</p>
+                       <motion.div
+                         animate={{ rotate: 360 }}
+                         transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                         style={{ display: 'inline-block', marginBottom: '15px' }}
+                       >
+                         <ChefHat size={48} color="#FF6B35" />
+                       </motion.div>
+                       <p style={{ color: '#666', fontWeight: 500 }}>Curating the best chefs for you...</p>
                     </div>
                 ) : filteredChefs.length === 0 ? (
-                    <div className="chef-empty">
-                        <Info size={48} className="mb-3" style={{ color: '#9CA3AF' }} />
-                        <h2>No chefs found!</h2>
-                        <p>Try searching for a different name, cuisine, or location.</p>
-                    </div>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="chef-empty"
+                    >
+                        <Info size={64} color="#ccc" strokeWidth={1} style={{ marginBottom: '20px' }} />
+                        <h2>No chefs found</h2>
+                        <p>Try adjusting your search or filters to find more talented chefs.</p>
+                    </motion.div>
                 ) : (
                     <div className="chef-grid">
-                        {filteredChefs.map((chef) => (
-                            <div key={chef._id} className="chef-card" onClick={() => navigate(`/homemaker/${chef._id}`)}>
-                                <div className="chef-card-img-wrap">
-                                    <img 
-                                        src={resolveImg(chef) || FALLBACK_IMG} 
-                                        alt={chef.name} 
-                                        className="chef-card-img" 
-                                    />
-                                    <div className="chef-card-overlay">
-                                        <div className="chef-card-location">
-                                            <MapPin size={14} />
-                                            {chef.address || "Location Hidden"}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="chef-card-body">
-                                    <h3 className="chef-card-name">{chef.name}</h3>
-                                    <div className="chef-card-cuisines">
-                                        {(chef.cuisines || []).slice(0, 3).map((cuisine, i) => (
-                                            <span key={i} className="cuisine-tag">{cuisine}</span>
-                                        ))}
-                                        {chef.cuisines?.length > 3 && <span className="cuisine-tag">+{chef.cuisines.length - 3}</span>}
+                        <AnimatePresence mode='popLayout'>
+                            {filteredChefs.map((chef, index) => (
+                                <motion.div 
+                                    layout
+                                    key={chef._id} 
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                                    className="chef-card" 
+                                    onClick={() => navigate(`/homemaker/${chef._id}`)}
+                                >
+                                    <div className="chef-card-img-wrap">
+                                        <img 
+                                            src={resolveImg(chef) || FALLBACK_IMG} 
+                                            alt={chef.name} 
+                                            className="chef-card-img" 
+                                        />
                                     </div>
                                     
+                                    <h3 className="chef-card-name">{chef.name}</h3>
+                                    
+                                    <div className="chef-card-location">
+                                        <MapPin size={12} />
+                                        {chef.address || "Serving your neighborhood"}
+                                    </div>
+
+                                    <div className="cuisine-tags">
+                                        {(chef.cuisines || ["Authentic"]).slice(0, 2).map((cuisine, i) => (
+                                            <span key={i} className="cuisine-tag">{cuisine}</span>
+                                        ))}
+                                    </div>
+
+                                    <p className="chef-card-desc">
+                                        Specializing in traditional home-cooked delicacies with fresh, local ingredients.
+                                    </p>
+                                    
                                     <div className="chef-card-stats">
-                                        <div className="chef-stat rating">
-                                            <Star size={16} fill="#F59E0B" color="#F59E0B" />
-                                            {chef.rating || "4.8"}
+                                        <div className="chef-stat">
+                                            <div className="stat-value">
+                                                <Star size={14} fill="#FF6B35" strokeWidth={0} />
+                                                {chef.rating || "4.8"}
+                                            </div>
+                                            <span className="stat-label">Rating</span>
                                         </div>
                                         <div className="chef-stat">
-                                            <ChefHat size={16} />
-                                            {chef.experience || "Expert"}
+                                            <div className="stat-value">
+                                                <Award size={14} color="#FF6B35" />
+                                                {chef.experience?.split(' ')[0] || "3+"}
+                                            </div>
+                                            <span className="stat-label">Exp (Yrs)</span>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        ))}
+
+                                    <button className="chef-view-btn">
+                                        View Menu <ChevronRight size={16} />
+                                    </button>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 };
 

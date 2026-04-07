@@ -36,7 +36,7 @@ const HeroSection = () => {
             </button>
             <button 
               className="hero-btn-secondary"
-              onClick={() => navigate('/view-homemakers')}
+              onClick={() => navigate('/chefs')}
             >
               Meet Our Chefs
             </button>

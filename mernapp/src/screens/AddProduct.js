@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./AddProduct.css"; // optional, for custom styling
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 const AddProduct = () => {
   const [formData, setFormData] = useState({
@@ -33,7 +34,7 @@ const AddProduct = () => {
     form.append("homemakerId", homemakerId);
 
     try {
-      const res = await fetch("http://localhost:5000/api/products", {
+      const res = await fetch(`${BASE_URL}/api/products`, {
         method: "POST",
         body: form,  // Use FormData directly as body
       });

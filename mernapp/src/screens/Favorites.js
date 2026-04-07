@@ -5,13 +5,20 @@ import { ShoppingCart, Star } from "lucide-react";
 import { CartContext } from "../context/CartContext";
 import "./Favorites.css";
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const resolveImg = (food) => {
   const raw = food.imageUrl || food.img || food.image || null;
+
   if (!raw) return null;
+
+  // full URL
   if (raw.startsWith("http") || raw.startsWith("data:")) return raw;
-  return `${BACKEND_URL}${raw.startsWith("/") ? "" : "/"}${raw}`;
+
+  // remove duplicate 'uploads/' if present
+  const cleanPath = raw.replace(/^\/?uploads\//, "");
+
+  return `${BACKEND_URL}/uploads/${cleanPath}`;
 };
 
 const FALLBACK_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23F3F4F6'/%3E%3Ctext x='150' y='90' font-family='sans-serif' font-size='40' text-anchor='middle'%3E%F0%9F%8D%BD%EF%B8%8F%3C/text%3E%3Ctext x='150' y='130' font-family='sans-serif' font-size='13' fill='%236B7280' text-anchor='middle'%3EImage unavailable%3C/text%3E%3C/svg%3E`;

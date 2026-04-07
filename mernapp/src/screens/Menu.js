@@ -11,7 +11,7 @@ const Menu = () => {
   const [sortBy, setSortBy] = useState("popularity");
   const [foodItems, setFoodItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const navigate = useNavigate();
   const { cartItems = [] } = useContext(CartContext); // Keep track of cart badge if needed
 
@@ -19,12 +19,12 @@ const Menu = () => {
     const fetchMenu = async () => {
       try {
         setLoading(true);
-        const res = await fetch("/api/products");
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/products`);
         const data = await res.json();
-        
+
         // My new backend returns { products: [...] }
         const productsList = data.products || (Array.isArray(data) ? data : []);
-        
+
         if (Array.isArray(productsList)) {
           const enhancedData = productsList.map(item => ({
             ...item,
@@ -51,30 +51,30 @@ const Menu = () => {
   // Sort and filter items
   const sortAndFilterItems = () => {
     let items = [...foodItems];
-    
+
     // Filter by category
     if (filter !== "All") {
       items = items.filter(food => {
         if (!food.category) return false;
         const cat = food.category.toLowerCase();
         const fill = filter.toLowerCase();
-        
+
         // Handle mapping for legacy category names
         if (fill === "vegetarian" && cat === "veg") return true;
         if (fill === "non-vegetarian" && cat === "non-veg") return true;
-        
+
         return cat === fill;
       });
     }
-    
+
     // Filter by search term
     if (search) {
-      items = items.filter(food => 
+      items = items.filter(food =>
         food.name.toLowerCase().includes(search.toLowerCase()) ||
         (food.description && food.description.toLowerCase().includes(search.toLowerCase()))
       );
     }
-    
+
     // Sort items
     if (sortBy === "price-low") {
       items.sort((a, b) => a.price - b.price);
@@ -86,7 +86,7 @@ const Menu = () => {
       // Default sort by popularity
       items.sort((a, b) => b.popularity - a.popularity);
     }
-    
+
     return items;
   };
 
@@ -105,7 +105,7 @@ const Menu = () => {
 
       {/* Controls Section */}
       <div className="controls-container">
-        
+
         <div className="controls-top-row">
           <div className="search-container">
             <Search size={18} className="search-icon" />
@@ -119,10 +119,10 @@ const Menu = () => {
           </div>
 
           <div className="sort-section">
-            <select 
+            <select
               id="sort-select"
-              className="sort-select" 
-              value={sortBy} 
+              className="sort-select"
+              value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
             >
               <option value="popularity">Sort by Relevance</option>
@@ -137,7 +137,7 @@ const Menu = () => {
         {/* Category Chips */}
         <div className="category-pills">
           {categories.map(category => (
-            <button 
+            <button
               key={category}
               className={`category-pill ${filter === category ? 'active' : ''}`}
               onClick={() => setFilter(category)}
